@@ -43,6 +43,7 @@ func (this *flags) HasAndPop(s string) (r string, has bool) {
 
 type Field struct {
 	flags        flags
+	dynamic      bool
 	Name         string
 	Index        []int
 	Dummy        []*Dummy
@@ -121,7 +122,9 @@ func (this *Field) ending(cell *xlsx.Cell, index int, suffix, protoType string) 
 }
 
 // Parse [{   [[  {  [
-func (this *Field) Parse(cell *xlsx.Cell, index int, protoType string) (end bool) {
+// protoType
+func (this *Field) Parse(sheet *Message, cell *xlsx.Cell, index int) (end bool) {
+	protoType := sheet.SheetType[index]
 	if protoType == "" {
 		return false
 	}
@@ -164,12 +167,14 @@ func (this *Field) Parse(cell *xlsx.Cell, index int, protoType string) (end bool
 		suffix = value
 	}
 	if len(this.Index) == 1 {
+		this.dynamic = sheet.dynamic[index]
 		this.Name = name //第一个名字为准
 		this.ProtoIndex = index + 1
 		this.ProtoRequire = protoRequire
 		if this.ProtoRequire == FieldTypeNone || this.ProtoRequire == FieldTypeArray {
 			this.ProtoType = protoType
 		}
+
 	}
 	if this.ProtoRequire == FieldTypeNone {
 		return true
@@ -189,7 +194,7 @@ func (this *Field) Value(row *xlsx.Row) (ret any, err error) {
 		var r []any
 		var v any
 		for _, i := range this.Index {
-			if c := row.GetCell(i); c == nil || strings.TrimSpace(c.Value) == "" {
+			if c := row.GetCell(i); c == nil || strings.TrimSpace(c.Value) == "" && this.dynamic {
 				continue //数组不填,不导入
 			}
 			if v, err = FormatValue(row, i, this.ProtoType); err == nil {

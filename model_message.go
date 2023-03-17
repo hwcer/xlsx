@@ -43,6 +43,7 @@ type Message struct {
 	SheetRows  *xlsx.Sheet    //sheets
 	SheetSkip  int            //数据表中数据部分需要跳过的行数
 	ExportType ExportType     //输出类型,kv arr map
+	dynamic    map[int]bool   //数组并且自动缩进
 }
 
 //const RowId = "id"
