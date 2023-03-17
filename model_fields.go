@@ -189,6 +189,9 @@ func (this *Field) Value(row *xlsx.Row) (ret any, err error) {
 		var r []any
 		var v any
 		for _, i := range this.Index {
+			if c := row.GetCell(i); c == nil || strings.TrimSpace(c.Value) == "" {
+				continue //数组不填,不导入
+			}
 			if v, err = FormatValue(row, i, this.ProtoType); err == nil {
 				r = append(r, v)
 			} else {
