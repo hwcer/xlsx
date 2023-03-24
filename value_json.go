@@ -36,5 +36,5 @@ func writeValueJson(sheets []*Message) {
 	if err = os.WriteFile(file, b, os.ModePerm); err != nil {
 		logger.Fatal(err)
 	}
-	logger.Info("JSON Data File:%v", file)
+	logger.Info("JSON data File:%v", file)
 }
