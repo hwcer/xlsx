@@ -2,8 +2,8 @@ package xlsx
 
 import (
 	"fmt"
-	"github.com/hwcer/cosgo/logger"
 	"github.com/hwcer/cosgo/utils"
+	"github.com/hwcer/logger"
 	"github.com/tealeg/xlsx/v3"
 	"strings"
 )
@@ -60,7 +60,7 @@ func (this *Message) Values() (any, []error) {
 	for i := this.SheetSkip + 1; i <= max; i++ {
 		row, err := this.SheetRows.Row(i)
 		if err != nil {
-			logger.Info("%v,err:%v", i, err)
+			logger.Trace("%v,err:%v", i, err)
 		}
 		id := strings.TrimSpace(row.GetCell(0).Value)
 		if utils.Empty(id) {
@@ -99,7 +99,7 @@ func (this *Message) Values() (any, []error) {
 	}
 
 	if len(emptyCell) > 10 {
-		logger.Info("%v共%v行ID为空已经忽略:%v", this.ProtoName, len(emptyCell), emptyCell)
+		logger.Trace("%v共%v行ID为空已经忽略:%v", this.ProtoName, len(emptyCell), emptyCell)
 	}
 	return r, errs
 }
@@ -126,7 +126,7 @@ func (this *Message) GlobalObjectsProtoName() {
 			if k, ok := globalObjects.Search(dummy); ok {
 				field.ProtoType = k
 				if name != k {
-					logger.Info("冗余的对象名称%v.%v,建议修改成%v", this.ProtoName, name, k)
+					logger.Trace("冗余的对象名称%v.%v,建议修改成%v", this.ProtoName, name, k)
 				}
 			} else {
 				field.ProtoType = name

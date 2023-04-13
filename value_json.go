@@ -3,13 +3,13 @@ package xlsx
 import (
 	"encoding/json"
 	"github.com/hwcer/cosgo"
-	"github.com/hwcer/cosgo/logger"
+	"github.com/hwcer/logger"
 	"os"
 	"path/filepath"
 )
 
 func writeValueJson(sheets []*Message) {
-	logger.Info("======================开始生成JSON数据======================")
+	logger.Trace("======================开始生成JSON数据======================")
 	data := map[string]any{}
 	var errs []error
 	for _, sheet := range sheets {
@@ -20,9 +20,9 @@ func writeValueJson(sheets []*Message) {
 		}
 	}
 	if len(errs) != 0 {
-		logger.Info("生成JSON数据失败")
+		logger.Trace("生成JSON数据失败")
 		for _, err := range errs {
-			logger.Info(err)
+			logger.Trace(err)
 		}
 		//os.Exit(0)
 	}
@@ -36,5 +36,5 @@ func writeValueJson(sheets []*Message) {
 	if err = os.WriteFile(file, b, os.ModePerm); err != nil {
 		logger.Fatal(err)
 	}
-	logger.Info("JSON Data File:%v", file)
+	logger.Trace("JSON Data File:%v", file)
 }

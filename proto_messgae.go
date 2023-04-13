@@ -3,7 +3,7 @@ package xlsx
 import (
 	"fmt"
 	"github.com/hwcer/cosgo"
-	"github.com/hwcer/cosgo/logger"
+	"github.com/hwcer/logger"
 	"os"
 	"path/filepath"
 	"strings"
@@ -31,7 +31,7 @@ func repeat(s string, n int) string {
 }
 
 func writeExcelIndex(sheets []*Message) {
-	logger.Info("======================开始生成配置索引======================")
+	logger.Trace("======================开始生成配置索引======================")
 	//输出所有标签
 	b := &strings.Builder{}
 	//t.WriteString("\n//配置索引......\n")
@@ -45,11 +45,11 @@ func writeExcelIndex(sheets []*Message) {
 	if err := os.WriteFile(f, []byte(b.String()), os.ModePerm); err != nil {
 		logger.Fatal(err)
 	}
-	logger.Info("配置索引文件:%v", f)
+	logger.Trace("配置索引文件:%v", f)
 }
 
 func writeProtoMessage(sheets []*Message) {
-	logger.Info("======================开始生成PROTO MESSAGE======================")
+	logger.Trace("======================开始生成PROTO MESSAGE======================")
 	//输出配置
 	b := &strings.Builder{}
 	ProtoTitle(b)
@@ -61,5 +61,5 @@ func writeProtoMessage(sheets []*Message) {
 	if err := os.WriteFile(file, []byte(b.String()), os.ModePerm); err != nil {
 		logger.Fatal(err)
 	}
-	logger.Info("Proto Message File:%v", file)
+	logger.Trace("Proto Message File:%v", file)
 }

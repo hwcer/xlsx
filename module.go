@@ -2,7 +2,7 @@ package xlsx
 
 import (
 	"github.com/hwcer/cosgo"
-	"github.com/hwcer/cosgo/logger"
+	"github.com/hwcer/logger"
 )
 
 const (
@@ -38,6 +38,6 @@ type module struct {
 func (this *module) Start() error {
 	preparePath()
 	LoadExcel(cosgo.Config.GetString(FlagsNameIn))
-	logger.Info("\n========================恭喜大表哥导表成功========================\n")
+	logger.Trace("\n========================恭喜大表哥导表成功========================\n")
 	return nil
 }

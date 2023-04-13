@@ -3,14 +3,14 @@ package xlsx
 import (
 	"fmt"
 	"github.com/hwcer/cosgo"
-	"github.com/hwcer/cosgo/logger"
+	"github.com/hwcer/logger"
 	"os"
 	"os/exec"
 	"path/filepath"
 )
 
 func ProtoGo() {
-	logger.Info("======================开始生成GO Message======================")
+	logger.Trace("======================开始生成GO Message======================")
 	out := fmt.Sprintf("--go_out=%v", cosgo.Config.GetString(FlagsNameGo))
 	path := fmt.Sprintf("--proto_path=%v", cosgo.Config.GetString(FlagsNameOut))
 	file := filepath.Join(cosgo.Config.GetString(FlagsNameOut), "*.proto")
@@ -26,5 +26,5 @@ func ProtoGo() {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	logger.Info("Proto GO Path:%v", cosgo.Config.GetString(FlagsNameGo))
+	logger.Trace("Proto GO Path:%v", cosgo.Config.GetString(FlagsNameGo))
 }

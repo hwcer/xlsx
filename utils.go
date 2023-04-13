@@ -2,7 +2,7 @@ package xlsx
 
 import (
 	"github.com/hwcer/cosgo"
-	"github.com/hwcer/cosgo/logger"
+	"github.com/hwcer/logger"
 	"github.com/tealeg/xlsx/v3"
 	"os"
 	"path/filepath"
@@ -62,22 +62,22 @@ func GetFiles(dir string, filter func(string) bool) (r []string) {
 
 func preparePath() {
 	// excel文件必须存在
-	logger.Info("====================开始检查EXCEL路径====================")
+	logger.Trace("====================开始检查EXCEL路径====================")
 	root := cosgo.Dir()
 	in := filepath.Join(root, cosgo.Config.GetString(FlagsNameIn))
 	if excelStat, err := os.Stat(in); err != nil || !excelStat.IsDir() {
 		logger.Fatal("excel路径必须存在且为目录: %v ", in)
 	}
 	cosgo.Config.Set(FlagsNameIn, in)
-	logger.Info("输入目录:%v", in)
+	logger.Trace("输入目录:%v", in)
 
-	logger.Info("====================开始检查输出路径====================")
+	logger.Trace("====================开始检查输出路径====================")
 	out := filepath.Join(root, cosgo.Config.GetString(FlagsNameOut))
 	if excelStat, err := os.Stat(out); err != nil || !excelStat.IsDir() {
 		logger.Fatal("静态数据目录错误: %v ", out)
 	}
 	files, _ := os.ReadDir(out)
-	logger.Info("删除输出路径中的文件")
+	logger.Trace("删除输出路径中的文件")
 	for _, filename := range files {
 		if strings.HasSuffix(filename.Name(), ".proto") ||
 			strings.HasSuffix(filename.Name(), ".txt") {
@@ -88,16 +88,16 @@ func preparePath() {
 		}
 	}
 	cosgo.Config.Set(FlagsNameOut, out)
-	logger.Info("输出目录:%v", out)
+	logger.Trace("输出目录:%v", out)
 
-	logger.Info("====================开始检查GO输出路径====================")
+	logger.Trace("====================开始检查GO输出路径====================")
 	if p := cosgo.Config.GetString(FlagsNameGo); p != "" {
 		goOutPath := filepath.Join(root, p)
 		if excelStat, err := os.Stat(goOutPath); err != nil || !excelStat.IsDir() {
 			logger.Fatal("GO文件输出目录错误: %v ", goOutPath)
 		}
 		fs, _ := os.ReadDir(goOutPath)
-		logger.Info("删除GO输出径中的文件")
+		logger.Trace("删除GO输出径中的文件")
 		for _, filename := range fs {
 			if strings.HasSuffix(filename.Name(), ".go") {
 				err := os.Remove(filepath.Join(goOutPath, filename.Name()))
@@ -107,17 +107,17 @@ func preparePath() {
 			}
 		}
 		cosgo.Config.Set(FlagsNameGo, goOutPath)
-		logger.Info("GO输出目录:%v", goOutPath)
+		logger.Trace("GO输出目录:%v", goOutPath)
 	}
 
-	logger.Info("====================开始检查JSON输出路径====================")
+	logger.Trace("====================开始检查JSON输出路径====================")
 	if p := cosgo.Config.GetString(FlagsNameJson); p != "" {
 		jsonPath := filepath.Join(root, p)
 		if excelStat, err := os.Stat(jsonPath); err != nil || !excelStat.IsDir() {
 			logger.Fatal("JSON输出目录错误: %v ", jsonPath)
 		}
 		fs, _ := os.ReadDir(jsonPath)
-		logger.Info("删除JSON文件")
+		logger.Trace("删除JSON文件")
 		for _, filename := range fs {
 			if strings.HasSuffix(filename.Name(), ".json") {
 				err := os.Remove(filepath.Join(jsonPath, filename.Name()))
@@ -127,16 +127,16 @@ func preparePath() {
 			}
 		}
 		cosgo.Config.Set(FlagsNameJson, jsonPath)
-		logger.Info("JSON输出目录:%v", jsonPath)
+		logger.Trace("JSON输出目录:%v", jsonPath)
 	}
 
-	logger.Info("====================开始检查忽略文件列表====================")
+	logger.Trace("====================开始检查忽略文件列表====================")
 	if s := cosgo.Config.GetString(FlagsNameIgnore); s != "" {
 		for _, v := range strings.Split(s, ",") {
 			if v != "" {
 				f := filepath.Join(in, v)
 				ignoreFiles = append(ignoreFiles, f)
-				logger.Info("忽略路径:%v", f)
+				logger.Trace("忽略路径:%v", f)
 			}
 
 		}

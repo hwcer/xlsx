@@ -2,13 +2,13 @@ package xlsx
 
 import (
 	"github.com/hwcer/cosgo"
-	"github.com/hwcer/cosgo/logger"
+	"github.com/hwcer/logger"
 	"github.com/tealeg/xlsx/v3"
 	"strings"
 )
 
 func LoadExcel(dir string) {
-	logger.Info("====================开始解析静态数据====================")
+	logger.Trace("====================开始解析静态数据====================")
 	filter := map[string]*Message{}
 	sheets := []*Message{}
 	files := GetFiles(dir, Ignore)
@@ -16,7 +16,7 @@ func LoadExcel(dir string) {
 	for _, file := range files {
 		//wb, err := spreadsheet.Open(file)
 		wb, err := xlsx.OpenFile(file)
-		logger.Info("解析文件:%v", file)
+		logger.Trace("解析文件:%v", file)
 		if err != nil {
 			logger.Fatal("excel文件格式错误:%v\n%v", file, err)
 		}
@@ -24,7 +24,7 @@ func LoadExcel(dir string) {
 			protoIndex += 1
 			if v := ParseSheet(sheet, protoIndex); v != nil {
 				if i, ok := filter[v.LowerName]; ok {
-					logger.Warn("表格名字[%v]重复自动跳过\n----FROM:%v\n----TODO:%v", v.ProtoName, i.FileName, file)
+					logger.Alert("表格名字[%v]重复自动跳过\n----FROM:%v\n----TODO:%v", v.ProtoName, i.FileName, file)
 				} else {
 					v.FileName = file
 					filter[v.LowerName] = v
@@ -127,7 +127,7 @@ func CreateSheet(sheet *xlsx.Sheet) (row *Message) {
 func ParseSheet(sheet *xlsx.Sheet, index int) (r *Message) {
 	//countArr := []int{1, 101, 201, 301}
 	max := sheet.MaxRow
-	logger.Info("----开始读取表格[%v],共有%v行", sheet.Name, max)
+	logger.Trace("----开始读取表格[%v],共有%v行", sheet.Name, max)
 	r = CreateSheet(sheet)
 	if r != nil {
 		r.ProtoIndex = index

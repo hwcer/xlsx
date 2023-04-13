@@ -1,20 +1,20 @@
 package main
 
 import (
+	"fmt"
 	"github.com/hwcer/cosgo"
-	"github.com/hwcer/cosgo/logger"
+	"github.com/hwcer/logger"
 	"github.com/hwcer/xlsx"
 )
 
 func init() {
-	cosgo.Console.Close()
+	logger.SetCallDepth(4)
+	logger.Console.Sprintf = func(message *logger.Message) string {
+		fmt.Printf("日志路径:%v\n", message.Path)
+		return message.Content
+	}
 }
 
 func main() {
-	cosgo.SetLoggerFormat(loggerFormat)
 	cosgo.Start(false, xlsx.New())
-}
-
-func loggerFormat(msg *logger.Message) string {
-	return msg.Content
 }
