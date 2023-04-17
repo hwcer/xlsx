@@ -17,6 +17,7 @@ var mod *module
 
 func init() {
 	logger.SetCallDepth(0)
+	logger.Console.Disabled = true
 	cosgo.Config.Flags(FlagsNameIn, "", "in", "需要解析的excel目录")
 	cosgo.Config.Flags(FlagsNameOut, "", "out", "输出文件目录")
 	cosgo.Config.Flags(FlagsNameGo, "", "out", "生成的GO文件")
@@ -37,8 +38,10 @@ type module struct {
 }
 
 func (this *module) Start() error {
+	logger.Console.Disabled = false
 	preparePath()
 	LoadExcel(cosgo.Config.GetString(FlagsNameIn))
 	logger.Trace("\n========================恭喜大表哥导表成功========================\n")
+	logger.Console.Disabled = true
 	return nil
 }
