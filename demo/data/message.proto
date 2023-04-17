@@ -7,6 +7,10 @@ message IdInt32NumInt32PerInt32{
 	int32 num = 2;
 	int32 per = 3;
 }
+message IdInt32NumInt32{ 
+	int32 id = 1;
+	int32 num = 2;
+}
 
 //数据对象......
 
@@ -15,7 +19,7 @@ message activityRow{
 	string TType = 2; //时间格式
 	repeated int32 Arr = 3; //
 	IdInt32NumInt32PerInt32 Obj = 6; //
-	repeated IdInt32NumInt32PerInt32 ArrObj = 9; //
+	repeated IdInt32NumInt32 ArrObj = 9; //
 }
 
 message StaticData{

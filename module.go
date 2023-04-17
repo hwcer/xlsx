@@ -16,6 +16,7 @@ const (
 var mod *module
 
 func init() {
+	logger.SetCallDepth(0)
 	cosgo.Config.Flags(FlagsNameIn, "", "in", "需要解析的excel目录")
 	cosgo.Config.Flags(FlagsNameOut, "", "out", "输出文件目录")
 	cosgo.Config.Flags(FlagsNameGo, "", "out", "生成的GO文件")

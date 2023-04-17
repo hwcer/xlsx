@@ -207,14 +207,14 @@ func (this *Field) Value(row *xlsx.Row) (ret any, err error) {
 			ret = r
 		}
 	case FieldTypeObject:
-		ret, err = this.Dummy[0].Value(row)
+		ret, err = this.Dummy[0].Value(row, this.dynamic)
 	case FieldTypeArrObj:
 		var r []any
-		var v any
+		var v map[string]any
 		for _, dummy := range this.Dummy {
-			if v, err = dummy.Value(row); err == nil {
+			if v, err = dummy.Value(row, this.dynamic); err == nil && len(v) > 0 {
 				r = append(r, v)
-			} else {
+			} else if err != nil {
 				break
 			}
 		}
