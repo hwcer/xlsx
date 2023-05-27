@@ -42,8 +42,8 @@ func (this *flags) HasAndPop(s string) (r string, has bool) {
 }
 
 type Field struct {
-	flags        flags
-	dynamic      bool
+	flags flags
+	//dynamic      bool
 	Name         string
 	Index        []int
 	Dummy        []*Dummy
@@ -167,7 +167,6 @@ func (this *Field) Parse(sheet *Message, cell *xlsx.Cell, index int) (end bool) 
 		suffix = value
 	}
 	if len(this.Index) == 1 {
-		this.dynamic = sheet.dynamic[index]
 		this.Name = name //第一个名字为准
 		this.ProtoIndex = index + 1
 		this.ProtoRequire = protoRequire
@@ -194,7 +193,7 @@ func (this *Field) Value(row *xlsx.Row) (ret any, err error) {
 		var r []any
 		var v any
 		for _, i := range this.Index {
-			if c := row.GetCell(i); c == nil || strings.TrimSpace(c.Value) == "" && this.dynamic {
+			if c := row.GetCell(i); c == nil || strings.TrimSpace(c.Value) == "" {
 				continue //数组不填,不导入
 			}
 			if v, err = FormatValue(row, i, this.ProtoType); err == nil {
@@ -207,12 +206,12 @@ func (this *Field) Value(row *xlsx.Row) (ret any, err error) {
 			ret = r
 		}
 	case FieldTypeObject:
-		ret, err = this.Dummy[0].Value(row, this.dynamic)
+		ret, err = this.Dummy[0].Value(row)
 	case FieldTypeArrObj:
 		var r []any
 		var v map[string]any
 		for _, dummy := range this.Dummy {
-			if v, err = dummy.Value(row, this.dynamic); err == nil && len(v) > 0 {
+			if v, err = dummy.Value(row); err == nil && len(v) > 0 {
 				r = append(r, v)
 			} else if err != nil {
 				break

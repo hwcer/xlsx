@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = "./;Pb";
+option go_package = "./;static";
 
 //全局对象......
 message IdInt32NumInt32PerInt32{ 
@@ -14,7 +14,7 @@ message IdInt32NumInt32{
 
 //数据对象......
 
-message activityRow{
+message activity{
 	int32 id = 1; //活动
 	string TType = 2; //时间格式
 	repeated int32 Arr = 3; //
@@ -22,6 +22,6 @@ message activityRow{
 	repeated IdInt32NumInt32 ArrObj = 9; //
 }
 
-message StaticData{
-	map<int32,activityRow> activity=1;
+message dataset{
+	map<int32,activity> activity=1;
 }

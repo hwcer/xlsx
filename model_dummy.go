@@ -68,12 +68,12 @@ func (this *Dummy) Compile() (string, error) {
 	return this.Label, nil
 }
 
-// Value 填充对象值 dynamic:是否忽略未填值的单元格
-func (this *Dummy) Value(row *xlsx.Row, dynamic bool) (map[string]any, error) {
+// Value 填充对象值
+func (this *Dummy) Value(row *xlsx.Row) (map[string]any, error) {
 	r := map[string]any{}
 	for _, field := range this.Fields {
-		if c := row.GetCell(field.SheetIndex); c == nil || strings.TrimSpace(c.Value) == "" && dynamic {
-			continue //不填,不导入
+		if c := row.GetCell(field.SheetIndex); c == nil {
+			continue
 		}
 		if v, err := FormatValue(row, field.SheetIndex, field.Type); err != nil {
 			return nil, err

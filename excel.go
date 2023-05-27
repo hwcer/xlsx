@@ -49,9 +49,8 @@ func CreateSheet(sheet *xlsx.Sheet) (row *Message) {
 		return nil
 	}
 	var skip int
-	row = &Message{SheetName: sheet.Name, dynamic: map[int]bool{}}
+	row = &Message{SheetName: sheet.Name}
 	max := sheet.MaxRow
-	maxColl := sheet.MaxCol
 	for skip = 0; skip <= max; skip++ {
 		r, e := sheet.Row(skip)
 		if e != nil {
@@ -72,13 +71,6 @@ func CreateSheet(sheet *xlsx.Sheet) (row *Message) {
 					row.ExportType = ExportTypeARR
 				}
 			}
-			//自动缩进的列
-			for i := 2; i <= maxColl; i++ {
-				if c := r.GetCell(i); c != nil && strings.TrimSpace(c.Value) == "dynamic" {
-					row.dynamic[i] = true
-				}
-			}
-
 		} else if row.SheetType == nil {
 			row.SheetType = map[int]string{}
 			for j := 0; j <= sheet.MaxCol; j++ {

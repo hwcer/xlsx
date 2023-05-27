@@ -5,7 +5,7 @@ var Config = &struct {
 	Package string //包名
 	Summary string //总表名,留空不生成总表
 }{
-	Suffix:  "Row",
-	Package: "Pb",
-	Summary: "StaticData",
+	Suffix:  "",
+	Package: "static",
+	Summary: "dataset",
 }
