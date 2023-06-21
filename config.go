@@ -6,6 +6,6 @@ var Config = &struct {
 	Summary string //总表名,留空不生成总表
 }{
 	Suffix:  "",
-	Package: "static",
-	Summary: "dataset",
+	Package: "data",
+	Summary: "data",
 }
