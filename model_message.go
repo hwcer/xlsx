@@ -83,6 +83,7 @@ func (this *Message) Values() (any, []error) {
 			errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
 			continue
 		}
+		//TODO
 		if this.ExportType == ExportTypeARR {
 			if d, ok := r[id]; !ok {
 				d2 := &rowArr{}
