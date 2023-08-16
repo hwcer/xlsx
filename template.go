@@ -25,7 +25,7 @@ message <%.ProtoName%><%$suffix%>{
 	<%- range .Fields %>
 	<%ProtoRequire .ProtoRequire%><%.ProtoType%> <%.Name%> = <%.ProtoIndex%>; //<% .ProtoDesc%><%end%>
 }
-<%- if IsArray .ExportType %>
+<%- if IsArray .TableType %>
 message <%.ProtoName%><%$suffix%>Array{
 	repeated <%.ProtoName%><%$suffix%> Coll = 1;
 }
@@ -52,8 +52,8 @@ func init() {
 	tpl.Delims("<%", "%>")
 }
 
-func TemplateIsArray(t ExportType) bool {
-	return t == ExportTypeARR
+func TemplateIsArray(t TableType) bool {
+	return t == TableTypeArr
 }
 
 func TemplateProtoRequire(t ProtoRequire) string {
@@ -65,14 +65,13 @@ func TemplateProtoRequire(t ProtoRequire) string {
 	}
 }
 
-func TemplateSummaryType(sheet *Message) string {
+func TemplateSummaryType(sheet *Sheet) string {
 	primary := sheet.Fields[0]
 	var t string
-	switch sheet.ExportType {
-	case ExportTypeKVS:
-		value := sheet.Fields[1]
-		t = value.ProtoType
-	case ExportTypeARR:
+	switch sheet.TableType {
+	case TableTypeObj:
+		return sheet.ProtoName
+	case TableTypeArr:
 		t = fmt.Sprintf("%v%vArray", sheet.ProtoName, Config.Suffix)
 	default:
 		t = fmt.Sprintf("%v%v", sheet.ProtoName, Config.Suffix)
@@ -108,14 +107,14 @@ func ProtoDummy(dummy *Dummy, builder *strings.Builder) {
 	return
 }
 
-func ProtoMessage(sheets []*Message, builder *strings.Builder) {
+func ProtoMessage(sheets []*Sheet, builder *strings.Builder) {
 	t, err := tpl.Parse(TemplateMessage)
 	if err != nil {
 		logger.Fatal(err)
 	}
 	data := &struct {
 		Suffix string
-		Sheets []*Message
+		Sheets []*Sheet
 	}{
 		Suffix: Config.Suffix,
 		Sheets: sheets,
@@ -133,7 +132,7 @@ func ProtoMessage(sheets []*Message, builder *strings.Builder) {
 	//输出总表
 	data2 := &struct {
 		Name   string
-		Sheets []*Message
+		Sheets []*Sheet
 	}{
 		Name:   Config.Summary,
 		Sheets: sheets,

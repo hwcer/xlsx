@@ -30,7 +30,7 @@ func repeat(s string, n int) string {
 	return s
 }
 
-func writeExcelIndex(sheets []*Message) {
+func writeExcelIndex(sheets []*Sheet) {
 	logger.Trace("======================开始生成配置索引======================")
 	//输出所有标签
 	b := &strings.Builder{}
@@ -48,7 +48,7 @@ func writeExcelIndex(sheets []*Message) {
 	logger.Trace("配置索引文件:%v", f)
 }
 
-func writeProtoMessage(sheets []*Message) {
+func writeProtoMessage(sheets []*Sheet) {
 	logger.Trace("======================开始生成PROTO MESSAGE======================")
 	//输出配置
 	b := &strings.Builder{}

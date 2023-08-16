@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-func writeValueJson(sheets []*Message) {
+func writeValueJson(sheets []*Sheet) {
 	logger.Trace("======================开始生成JSON数据======================")
 	data := map[string]any{}
 	var errs []error

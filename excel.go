@@ -9,8 +9,8 @@ import (
 
 func LoadExcel(dir string) {
 	logger.Trace("====================开始解析静态数据====================")
-	filter := map[string]*Message{}
-	sheets := []*Message{}
+	var sheets []*Sheet
+	filter := map[string]*Sheet{}
 	files := GetFiles(dir, Ignore)
 	var protoIndex int
 	for _, file := range files {
@@ -44,12 +44,12 @@ func LoadExcel(dir string) {
 
 }
 
-func CreateSheet(sheet *xlsx.Sheet) (row *Message) {
+func CreateSheet(sheet *xlsx.Sheet) (row *Sheet) {
 	if !Valid(sheet) {
 		return nil
 	}
 	var skip int
-	row = &Message{SheetName: sheet.Name}
+	row = &Sheet{SheetName: sheet.Name}
 	max := sheet.MaxRow
 	for skip = 0; skip <= max; skip++ {
 		r, e := sheet.Row(skip)
@@ -64,12 +64,7 @@ func CreateSheet(sheet *xlsx.Sheet) (row *Message) {
 			row.ProtoName = cell.Value
 			row.LowerName = strings.ToLower(cell.Value)
 			if c := r.GetCell(1); c != nil {
-				switch strings.ToLower(c.Value) {
-				case "kv":
-					row.ExportType = ExportTypeKVS
-				case "array":
-					row.ExportType = ExportTypeARR
-				}
+				row.TableType = Config.GetTableType(c.Value)
 			}
 		} else if row.SheetType == nil {
 			row.SheetType = map[int]string{}
@@ -103,7 +98,6 @@ func CreateSheet(sheet *xlsx.Sheet) (row *Message) {
 	if row.ProtoName == "" || strings.HasPrefix(row.SheetName, "~") || strings.HasPrefix(row.ProtoName, "~") {
 		return nil
 	}
-
 	row.SheetSkip = skip
 	row.SheetRows = sheet
 	for _, field := range row.Fields {
@@ -113,10 +107,15 @@ func CreateSheet(sheet *xlsx.Sheet) (row *Message) {
 			field.ProtoDesc = field.ProtoName
 		}
 	}
+
+	if row.TableType == TableTypeObj {
+		row.reParseObjField()
+	}
+
 	return
 }
 
-func ParseSheet(sheet *xlsx.Sheet, index int) (r *Message) {
+func ParseSheet(sheet *xlsx.Sheet, index int) (r *Sheet) {
 	//countArr := []int{1, 101, 201, 301}
 	max := sheet.MaxRow
 	logger.Trace("----开始读取表格[%v],共有%v行", sheet.Name, max)

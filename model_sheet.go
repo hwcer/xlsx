@@ -8,17 +8,10 @@ import (
 	"strings"
 )
 
-var ignoreFiles []string
-var globalObjects = GlobalDummy{}
-
-type ExportType int8
 type GlobalDummy map[string]*Dummy
 
-const (
-	ExportTypeMap ExportType = iota //默认
-	ExportTypeKVS
-	ExportTypeARR
-)
+var ignoreFiles []string
+var globalObjects = GlobalDummy{}
 
 // Search 查找可能兼容的对象
 func (this *GlobalDummy) Search(d *Dummy) (r string, ok bool) {
@@ -31,7 +24,7 @@ func (this *GlobalDummy) Search(d *Dummy) (r string, ok bool) {
 	return
 }
 
-type Message struct {
+type Sheet struct {
 	Fields     []*Field       //字段列表
 	FileName   string         //文件名
 	SheetName  string         //表格名称
@@ -42,7 +35,7 @@ type Message struct {
 	ProtoIndex int            //总表中的序号
 	SheetRows  *xlsx.Sheet    //sheets
 	SheetSkip  int            //数据表中数据部分需要跳过的行数
-	ExportType ExportType     //输出类型,kv arr map
+	TableType  TableType      //输出类型,kv arr map
 }
 
 //const RowId = "id"
@@ -51,7 +44,45 @@ type rowArr struct {
 	Coll []any
 }
 
-func (this *Message) Values() (any, []error) {
+// 重新解析obj的字段
+func (this *Sheet) reParseObjField() {
+	max := this.SheetRows.MaxRow
+	var index int
+	var fields []*Field
+	for i := this.SheetSkip + 1; i <= max; i++ {
+		row, err := this.SheetRows.Row(i)
+		if err != nil {
+			logger.Trace("%v,err:%v", i, err)
+		}
+		key := strings.TrimSpace(row.GetCell(0).Value)
+		if utils.Empty(key) {
+			continue
+		}
+
+		index++
+		field := &Field{}
+		field.Name = key
+		field.Index = []int{1}
+		field.ProtoName = key
+		field.ProtoIndex = index
+		field.ProtoType = FormatType(strings.TrimSpace(row.GetCell(2).Value))
+		field.ProtoDesc = strings.TrimSpace(row.GetCell(3).Value)
+		field.ProtoRequire = FieldTypeNone
+		fields = append(fields, field)
+	}
+	this.Fields = fields
+}
+
+func (this *Sheet) GetField(name string) *Field {
+	for _, v := range this.Fields {
+		if v.Name == name {
+			return v
+		}
+	}
+	return nil
+}
+
+func (this *Sheet) Values() (any, []error) {
 	r := map[string]any{}
 	var errs []error
 	var emptyCell []int
@@ -61,19 +92,21 @@ func (this *Message) Values() (any, []error) {
 		if err != nil {
 			logger.Trace("%v,err:%v", i, err)
 		}
+
 		id := strings.TrimSpace(row.GetCell(0).Value)
 		if utils.Empty(id) {
 			emptyCell = append(emptyCell, row.GetCoordinate()+1)
 			continue
 		}
 		//KV 模式直接定位 0,1 列
-		if this.ExportType == ExportTypeKVS {
-			var data any
-			field := this.Fields[1]
-			if data, err = field.Value(row); err == nil {
-				r[id] = data
-			} else {
-				errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
+		if this.TableType == TableTypeObj {
+			if field := this.GetField(id); field != nil {
+				var data any
+				if data, err = field.Value(row); err == nil {
+					r[id] = data
+				} else {
+					errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
+				}
 			}
 			continue
 		}
@@ -84,7 +117,7 @@ func (this *Message) Values() (any, []error) {
 			continue
 		}
 		//TODO
-		if this.ExportType == ExportTypeARR {
+		if this.TableType == TableTypeArr {
 			if d, ok := r[id]; !ok {
 				d2 := &rowArr{}
 				d2.Coll = append(d2.Coll, val)
@@ -104,7 +137,7 @@ func (this *Message) Values() (any, []error) {
 	return r, errs
 }
 
-func (this *Message) Value(row *xlsx.Row) (map[string]any, error) {
+func (this *Sheet) Value(row *xlsx.Row) (map[string]any, error) {
 	r := map[string]any{}
 	for _, field := range this.Fields {
 		v, e := field.Value(row)
@@ -118,7 +151,7 @@ func (this *Message) Value(row *xlsx.Row) (map[string]any, error) {
 }
 
 // GlobalObjectsProtoName 通过ProtoName生成对象
-func (this *Message) GlobalObjectsProtoName() {
+func (this *Sheet) GlobalObjectsProtoName() {
 	for _, field := range this.Fields {
 		if (field.ProtoRequire == FieldTypeObject || field.ProtoRequire == FieldTypeArrObj) && field.ProtoName != "" {
 			name := field.ProtoName
@@ -137,7 +170,7 @@ func (this *Message) GlobalObjectsProtoName() {
 }
 
 // GlobalObjectsAutoName 自动命名
-func (this *Message) GlobalObjectsAutoName() {
+func (this *Sheet) GlobalObjectsAutoName() {
 	for _, field := range this.Fields {
 		if (field.ProtoRequire == FieldTypeObject || field.ProtoRequire == FieldTypeArrObj) && field.ProtoName == "" {
 			dummy := field.Dummy[0]
@@ -151,7 +184,7 @@ func (this *Message) GlobalObjectsAutoName() {
 	}
 }
 
-func buildGlobalObjects(b *strings.Builder, sheets []*Message) {
+func buildGlobalObjects(b *strings.Builder, sheets []*Sheet) {
 	for _, s := range sheets {
 		s.GlobalObjectsProtoName()
 	}

@@ -123,7 +123,7 @@ func (this *Field) ending(cell *xlsx.Cell, index int, suffix, protoType string) 
 
 // Parse [{   [[  {  [
 // protoType
-func (this *Field) Parse(sheet *Message, cell *xlsx.Cell, index int) (end bool) {
+func (this *Field) Parse(sheet *Sheet, cell *xlsx.Cell, index int) (end bool) {
 	protoType := sheet.SheetType[index]
 	if protoType == "" {
 		return false

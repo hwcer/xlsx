@@ -1,1 +1,3 @@
-activity                      活动配置                                D:\Golang\github\xlsx\demo\data\测试表.xlsx
+activity                      map                                     D:\Golang\github\xlsx\demo\data\测试表.xlsx
+base                          obj                                     D:\Golang\github\xlsx\demo\data\测试表.xlsx
+itemGroup                     array                                   D:\Golang\github\xlsx\demo\data\测试表.xlsx
