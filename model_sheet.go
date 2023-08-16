@@ -65,9 +65,15 @@ func (this *Sheet) reParseObjField() {
 		field.Index = []int{1}
 		field.ProtoName = key
 		field.ProtoIndex = index
-		field.ProtoType = FormatType(strings.TrimSpace(row.GetCell(2).Value))
-		field.ProtoDesc = strings.TrimSpace(row.GetCell(3).Value)
 		field.ProtoRequire = FieldTypeNone
+		if v := strings.TrimSpace(row.GetCell(2).Value); v != "" {
+			field.ProtoType = FormatType(v)
+		} else {
+			field.ProtoType = FormatType("int")
+		}
+		if v := strings.TrimSpace(row.GetCell(3).Value); v != "" {
+			field.ProtoDesc = v
+		}
 		fields = append(fields, field)
 	}
 	this.Fields = fields
