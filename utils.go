@@ -151,9 +151,9 @@ func FormatType(t string) string {
 	case "int64":
 		return "int64"
 	case "float", "float32":
-		return "float32"
-	case "float64":
-		return "float64"
+		return "float"
+	case "float64", "double":
+		return "double"
 	case "str", "string", "text":
 		return "string"
 	}
