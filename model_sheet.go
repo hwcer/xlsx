@@ -25,17 +25,17 @@ func (this *GlobalDummy) Search(d *Dummy) (r string, ok bool) {
 }
 
 type Sheet struct {
-	Fields     []*Field       //字段列表
-	FileName   string         //文件名
-	SheetName  string         //表格名称
-	SheetType  map[int]string //表格属性
-	SheetDesc  map[int]string //表格描述
-	LowerName  string         // 小写的表名字， 保证唯一
-	ProtoName  string         // protoName 是pb.go中文件的名字，
-	ProtoIndex int            //总表中的序号
-	SheetRows  *xlsx.Sheet    //sheets
-	SheetSkip  int            //数据表中数据部分需要跳过的行数
-	TableType  TableType      //输出类型,kv arr map
+	Fields    []*Field //字段列表
+	FileName  string   //文件名
+	SheetName string   //表格名称
+	//SheetType  map[int]string //表格属性
+	//SheetDesc  map[int]string //表格描述
+	LowerName string // 小写的表名字， 保证唯一
+	ProtoName string // protoName 是pb.go中文件的名字，
+	//ProtoIndex int         //总表中的序号
+	SheetRows *xlsx.Sheet //sheets
+	SheetSkip int         //数据表中数据部分需要跳过的行数
+	SheetType SheetType   //输出类型,kv arr map
 }
 
 //const RowId = "id"
@@ -93,7 +93,7 @@ func (this *Sheet) Values() (any, []error) {
 	var errs []error
 	var emptyCell []int
 	max := this.SheetRows.MaxRow
-	for i := this.SheetSkip + 1; i <= max; i++ {
+	for i := this.SheetSkip; i <= max; i++ {
 		row, err := this.SheetRows.Row(i)
 		if err != nil {
 			logger.Trace("%v,err:%v", i, err)
@@ -105,7 +105,7 @@ func (this *Sheet) Values() (any, []error) {
 			continue
 		}
 		//KV 模式直接定位 0,1 列
-		if this.TableType == TableTypeObj {
+		if this.SheetType == TableTypeObj {
 			if field := this.GetField(id); field != nil {
 				var data any
 				if data, err = field.Value(row); err == nil {
@@ -123,7 +123,7 @@ func (this *Sheet) Values() (any, []error) {
 			continue
 		}
 		//TODO
-		if this.TableType == TableTypeArr {
+		if this.SheetType == TableTypeArr {
 			if d, ok := r[id]; !ok {
 				d2 := &rowArr{}
 				d2.Coll = append(d2.Coll, val)

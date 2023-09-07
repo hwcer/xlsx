@@ -54,7 +54,12 @@ func writeProtoMessage(sheets []*Sheet) {
 	b := &strings.Builder{}
 	ProtoTitle(b)
 	b.WriteString("\n//全局对象......\n")
+	if Config.Proto != nil {
+		b.WriteString(Config.Proto())
+		b.WriteString("\n")
+	}
 	buildGlobalObjects(b, sheets)
+
 	b.WriteString("\n//数据对象......\n")
 	ProtoMessage(sheets, b)
 	file := filepath.Join(cosgo.Config.GetString(FlagsNameOut), "message.proto")

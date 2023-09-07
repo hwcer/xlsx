@@ -179,6 +179,18 @@ func FormatValue(row *xlsx.Row, i int, t string) (r any, err error) {
 			return int64(0), nil
 		}
 		r, err = strconv.ParseInt(v, 10, 64)
+	case "float":
+		if v == "" {
+			return float32(0), nil
+		}
+		var f float64
+		f, err = strconv.ParseFloat(v, 10)
+		r = float32(f)
+	case "double":
+		if v == "" {
+			return float32(0), nil
+		}
+		r, err = strconv.ParseFloat(v, 10)
 	case "str", "string", "text":
 		r = v
 	}

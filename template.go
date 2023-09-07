@@ -23,9 +23,9 @@ const TemplateMessage = `
 <%- range .Sheets%>
 message <%.ProtoName%><%$suffix%>{
 	<%- range .Fields %>
-	<%ProtoRequire .ProtoRequire%><%.ProtoType%> <%.Name%> = <%.ProtoIndex%>; //<% .ProtoDesc%><%end%>
+	<%ProtoRequire .%> <%.Name%> = <%.ProtoIndex%>; //<% .ProtoDesc%><%end%>
 }
-<%- if IsArray .TableType %>
+<%- if IsArray .SheetType %>
 message <%.ProtoName%><%$suffix%>Array{
 	repeated <%.ProtoName%><%$suffix%> Coll = 1;
 }
@@ -52,23 +52,28 @@ func init() {
 	tpl.Delims("<%", "%>")
 }
 
-func TemplateIsArray(t TableType) bool {
+func TemplateIsArray(t SheetType) bool {
 	return t == TableTypeArr
 }
 
-func TemplateProtoRequire(t ProtoRequire) string {
-	switch t {
-	case FieldTypeArray, FieldTypeArrObj:
-		return "repeated "
-	default:
-		return ""
+func TemplateProtoRequire(field *Field) string {
+	if handle, ok := protoRequireHandles[field.ProtoRequire]; ok {
+		return handle.Require(field)
+	} else {
+		return field.ProtoType
 	}
+	//switch t {
+	//case FieldTypeArray, FieldTypeArrObj:
+	//	return "repeated "
+	//default:
+	//	return ""
+	//}
 }
 
 func TemplateSummaryType(sheet *Sheet) string {
 	primary := sheet.Fields[0]
 	var t string
-	switch sheet.TableType {
+	switch sheet.SheetType {
 	case TableTypeObj:
 		return sheet.ProtoName
 	case TableTypeArr:

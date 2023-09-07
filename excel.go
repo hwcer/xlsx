@@ -22,7 +22,7 @@ func LoadExcel(dir string) {
 		}
 		for _, sheet := range wb.Sheets {
 			protoIndex += 1
-			if v := ParseSheet(sheet, protoIndex); v != nil {
+			if v := parseSheet(sheet, protoIndex); v != nil {
 				if i, ok := filter[v.LowerName]; ok {
 					logger.Alert("表格名字[%v]重复自动跳过\n----FROM:%v\n----TODO:%v", v.ProtoName, i.FileName, file)
 				} else {
@@ -44,84 +44,50 @@ func LoadExcel(dir string) {
 
 }
 
-func CreateSheet(sheet *xlsx.Sheet) (row *Sheet) {
-	if !Valid(sheet) {
-		return nil
-	}
-	var skip int
-	row = &Sheet{SheetName: sheet.Name}
+func parseSheet(sheet *xlsx.Sheet, index int) (r *Sheet) {
+	//countArr := []int{1, 101, 201, 301}
 	max := sheet.MaxRow
-	for skip = 0; skip <= max; skip++ {
-		r, e := sheet.Row(skip)
-		if e != nil {
-			logger.Fatal("获取sheet行错误 name:%v,err:%v", sheet.Name, e)
-		}
-		cell := r.GetCell(0)
-		if cell.Value == "" {
-			continue
-		}
-		if row.ProtoName == "" {
-			row.ProtoName = cell.Value
-			row.LowerName = strings.ToLower(cell.Value)
-			if c := r.GetCell(1); c != nil {
-				row.TableType = Config.GetTableType(c.Value)
-			}
-		} else if row.SheetType == nil {
-			row.SheetType = map[int]string{}
-			for j := 0; j <= sheet.MaxCol; j++ {
-				if c := r.GetCell(j); c != nil && c.Value != "" {
-					row.SheetType[j] = FormatType(strings.TrimSpace(c.Value))
-				}
-			}
-		} else if row.Fields == nil {
-			var end bool
-			var field = &Field{}
-			for j := 0; j <= sheet.MaxCol; j++ {
-				if end = field.Parse(row, r.GetCell(j), j); end {
-					if field.Compile() {
-						row.Fields = append(row.Fields, field)
-					}
-					field = &Field{}
-				}
-			}
-			//v.Fields = map[string]any{} //todo
-		} else if row.SheetDesc == nil {
-			row.SheetDesc = map[int]string{}
-			for j := 0; j <= sheet.MaxCol; j++ {
-				if c := r.GetCell(j); c != nil {
-					row.SheetDesc[j] = c.Value
-				}
-			}
-			break
-		}
-	}
-	if row.ProtoName == "" || strings.HasPrefix(row.SheetName, "~") || strings.HasPrefix(row.ProtoName, "~") {
+	logger.Trace("----开始读取表格[%v],共有%v行", sheet.Name, max)
+	_ = parseHeader(sheet)
+	//if r != nil {
+	//	r.ProtoIndex = index
+	//}
+	return
+}
+
+func parseHeader(v *xlsx.Sheet) (sheet *Sheet) {
+	sheet = &Sheet{SheetName: v.Name, SheetRows: v}
+	parse := Config.Parser(v)
+	var ok bool
+	if sheet.SheetSkip, sheet.ProtoName, ok = parse.Verify(); !ok {
 		return nil
 	}
-	row.SheetSkip = skip
-	row.SheetRows = sheet
-	for _, field := range row.Fields {
+	if i, ok := parse.(ParserSheetType); ok {
+		sheet.SheetType = i.SheetType()
+	}
+	if sheet.Fields = parse.Fields(); len(sheet.Fields) == 0 {
+		logger.Debug("表[%v]字段为空已经跳过", sheet.SheetName)
+		return nil
+	}
+
+	if sheet.ProtoName == "" || strings.HasPrefix(sheet.SheetName, "~") || strings.HasPrefix(sheet.ProtoName, "~") {
+		return nil
+	}
+	sheet.LowerName = strings.ToLower(sheet.ProtoName)
+	var index int = 1
+	for _, field := range sheet.Fields {
+		field.ProtoIndex = index
+		index++
 		if field.ProtoRequire == FieldTypeNone {
-			field.ProtoDesc = strings.ReplaceAll(row.SheetDesc[field.Index[0]], "\n", "")
+			field.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
 		} else {
 			field.ProtoDesc = field.ProtoName
 		}
 	}
 
-	if row.TableType == TableTypeObj {
-		row.reParseObjField()
+	if sheet.SheetType == TableTypeObj {
+		sheet.reParseObjField()
 	}
 
-	return
-}
-
-func ParseSheet(sheet *xlsx.Sheet, index int) (r *Sheet) {
-	//countArr := []int{1, 101, 201, 301}
-	max := sheet.MaxRow
-	logger.Trace("----开始读取表格[%v],共有%v行", sheet.Name, max)
-	r = CreateSheet(sheet)
-	if r != nil {
-		r.ProtoIndex = index
-	}
 	return
 }
