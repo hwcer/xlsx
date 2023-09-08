@@ -2,39 +2,9 @@ syntax = "proto3";
 option go_package = "./;data";
 
 //全局对象......
-message IdInt32NumInt32PerInt32{ 
-	int32 id = 1;
-	int32 num = 2;
-	int32 per = 3;
-}
-message IdInt32NumInt32{ 
-	int32 id = 1;
-	int32 num = 2;
-}
 
 //数据对象......
 
-message activity{
-	int32 id = 1; //活动
-	string TType = 2; //时间格式
-	repeated int32 Arr = 3; //
-	IdInt32NumInt32PerInt32 Obj = 4; //
-	repeated IdInt32NumInt32 ArrObj = 5; //
-}
-message base{
-	string name = 1; //名称
-}
-message itemGroup{
-	int32 id = 1; //标识
-	int32 val = 2; //值
-	string name = 3; //名称
-}
-message itemGroupArray{
-	repeated itemGroup Coll = 1;
-}
 
 message data{
-	map<int32,activity> activity=1;
-	base base=2;
-	map<int32,itemGroupArray> itemGroup=3;
 }

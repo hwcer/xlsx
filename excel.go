@@ -21,13 +21,15 @@ func LoadExcel(dir string) {
 			logger.Fatal("excel文件格式错误:%v\n%v", file, err)
 		}
 		for _, sheet := range wb.Sheets {
-			protoIndex += 1
-			if v := parseSheet(sheet, protoIndex); v != nil {
-				if i, ok := filter[v.LowerName]; ok {
+			if v := parseSheet(sheet); v != nil {
+				lowerName := strings.ToLower(v.SheetName)
+				if i, ok := filter[lowerName]; ok {
 					logger.Alert("表格名字[%v]重复自动跳过\n----FROM:%v\n----TODO:%v", v.ProtoName, i.FileName, file)
 				} else {
+					protoIndex += 1
 					v.FileName = file
-					filter[v.LowerName] = v
+					v.ProtoIndex = protoIndex
+					filter[lowerName] = v
 					sheets = append(sheets, v)
 				}
 			}
@@ -44,18 +46,10 @@ func LoadExcel(dir string) {
 
 }
 
-func parseSheet(sheet *xlsx.Sheet, index int) (r *Sheet) {
+func parseSheet(v *xlsx.Sheet) (sheet *Sheet) {
 	//countArr := []int{1, 101, 201, 301}
-	max := sheet.MaxRow
-	logger.Trace("----开始读取表格[%v],共有%v行", sheet.Name, max)
-	_ = parseHeader(sheet)
-	//if r != nil {
-	//	r.ProtoIndex = index
-	//}
-	return
-}
-
-func parseHeader(v *xlsx.Sheet) (sheet *Sheet) {
+	max := v.MaxRow
+	logger.Trace("----开始读取表格[%v],共有%v行", v.Name, max)
 	sheet = &Sheet{SheetName: v.Name, SheetRows: v}
 	parse := Config.Parser(v)
 	var ok bool
@@ -73,21 +67,20 @@ func parseHeader(v *xlsx.Sheet) (sheet *Sheet) {
 	if sheet.ProtoName == "" || strings.HasPrefix(sheet.SheetName, "~") || strings.HasPrefix(sheet.ProtoName, "~") {
 		return nil
 	}
-	sheet.LowerName = strings.ToLower(sheet.ProtoName)
-	var index int = 1
+	//sheet.LowerName = strings.ToLower(sheet.ProtoName)
+	var index int
 	for _, field := range sheet.Fields {
-		field.ProtoIndex = index
 		index++
-		if field.ProtoRequire == FieldTypeNone {
+		field.protoIndex = index
+		if field.ProtoDesc != "" {
 			field.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
-		} else {
-			field.ProtoDesc = field.ProtoName
 		}
 	}
 
-	if sheet.SheetType == TableTypeObj {
+	if sheet.SheetType == SheetTypeObj {
 		sheet.reParseObjField()
 	}
 
 	return
+
 }

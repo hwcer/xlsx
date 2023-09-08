@@ -25,17 +25,14 @@ func (this *GlobalDummy) Search(d *Dummy) (r string, ok bool) {
 }
 
 type Sheet struct {
-	Fields    []*Field //字段列表
-	FileName  string   //文件名
-	SheetName string   //表格名称
-	//SheetType  map[int]string //表格属性
-	//SheetDesc  map[int]string //表格描述
-	LowerName string // 小写的表名字， 保证唯一
-	ProtoName string // protoName 是pb.go中文件的名字，
-	//ProtoIndex int         //总表中的序号
-	SheetRows *xlsx.Sheet //sheets
-	SheetSkip int         //数据表中数据部分需要跳过的行数
-	SheetType SheetType   //输出类型,kv arr map
+	Fields     []*Field    //字段列表
+	FileName   string      //文件名
+	SheetName  string      //表格名称
+	SheetRows  *xlsx.Sheet //sheets
+	SheetSkip  int         //数据表中数据部分需要跳过的行数
+	SheetType  SheetType   //输出类型,kv arr map
+	ProtoName  string      // protoName 是pb.go中文件的名字，
+	ProtoIndex int         //总表编号
 }
 
 //const RowId = "id"
@@ -81,7 +78,7 @@ func (this *Sheet) reParseObjField() {
 
 func (this *Sheet) GetField(name string) *Field {
 	for _, v := range this.Fields {
-		if v.Name == name {
+		if v.ProtoName == name {
 			return v
 		}
 	}
@@ -105,7 +102,7 @@ func (this *Sheet) Values() (any, []error) {
 			continue
 		}
 		//KV 模式直接定位 0,1 列
-		if this.SheetType == TableTypeObj {
+		if this.SheetType == SheetTypeObj {
 			if field := this.GetField(id); field != nil {
 				var data any
 				if data, err = field.Value(row); err == nil {
@@ -123,7 +120,7 @@ func (this *Sheet) Values() (any, []error) {
 			continue
 		}
 		//TODO
-		if this.SheetType == TableTypeArr {
+		if this.SheetType == SheetTypeArr {
 			if d, ok := r[id]; !ok {
 				d2 := &rowArr{}
 				d2.Coll = append(d2.Coll, val)
@@ -150,57 +147,57 @@ func (this *Sheet) Value(row *xlsx.Row) (map[string]any, error) {
 		if e != nil {
 			return nil, e
 		} else {
-			r[field.Name] = v
+			r[field.ProtoName] = v
 		}
 	}
 	return r, nil
 }
-
-// GlobalObjectsProtoName 通过ProtoName生成对象
-func (this *Sheet) GlobalObjectsProtoName() {
-	for _, field := range this.Fields {
-		if (field.ProtoRequire == FieldTypeObject || field.ProtoRequire == FieldTypeArrObj) && field.ProtoName != "" {
-			name := field.ProtoName
-			dummy := field.Dummy[0]
-			if k, ok := globalObjects.Search(dummy); ok {
-				field.ProtoType = k
-				if name != k {
-					logger.Trace("冗余的对象名称%v.%v,建议修改成%v", this.ProtoName, name, k)
-				}
-			} else {
-				field.ProtoType = name
-				globalObjects[name] = dummy
-			}
-		}
-	}
-}
-
-// GlobalObjectsAutoName 自动命名
-func (this *Sheet) GlobalObjectsAutoName() {
-	for _, field := range this.Fields {
-		if (field.ProtoRequire == FieldTypeObject || field.ProtoRequire == FieldTypeArrObj) && field.ProtoName == "" {
-			dummy := field.Dummy[0]
-			if k, ok := globalObjects.Search(dummy); ok {
-				field.ProtoType = k
-			} else {
-				field.ProtoType = dummy.Label
-				globalObjects[dummy.Label] = dummy
-			}
-		}
-	}
-}
-
-func buildGlobalObjects(b *strings.Builder, sheets []*Sheet) {
-	for _, s := range sheets {
-		s.GlobalObjectsProtoName()
-	}
-	for _, s := range sheets {
-		s.GlobalObjectsAutoName()
-	}
-	for k, dummy := range globalObjects {
-		dummy.Name = k
-		ProtoDummy(dummy, b)
-	}
-
-	globalObjects = map[string]*Dummy{}
-}
+//
+//// GlobalObjectsProtoName 通过ProtoName生成对象
+//func (this *Sheet) GlobalObjectsProtoName() {
+//	for _, field := range this.Fields {
+//		if (field.ProtoRequire == FieldTypeObject || field.ProtoRequire == FieldTypeArrObj) && field.ProtoName != "" {
+//			name := field.ProtoName
+//			dummy := field.Dummy[0]
+//			if k, ok := globalObjects.Search(dummy); ok {
+//				field.ProtoType = k
+//				if name != k {
+//					logger.Trace("冗余的对象名称%v.%v,建议修改成%v", this.ProtoName, name, k)
+//				}
+//			} else {
+//				field.ProtoType = name
+//				globalObjects[name] = dummy
+//			}
+//		}
+//	}
+//}
+//
+//// GlobalObjectsAutoName 自动命名
+//func (this *Sheet) GlobalObjectsAutoName() {
+//	for _, field := range this.Fields {
+//		if (field.ProtoRequire == FieldTypeObject || field.ProtoRequire == FieldTypeArrObj) && field.ProtoName == "" {
+//			dummy := field.Dummy[0]
+//			if k, ok := globalObjects.Search(dummy); ok {
+//				field.ProtoType = k
+//			} else {
+//				field.ProtoType = dummy.Label
+//				globalObjects[dummy.Label] = dummy
+//			}
+//		}
+//	}
+//}
+//
+//func buildGlobalObjects(b *strings.Builder, sheets []*Sheet) {
+//	for _, s := range sheets {
+//		s.GlobalObjectsProtoName()
+//	}
+//	for _, s := range sheets {
+//		s.GlobalObjectsAutoName()
+//	}
+//	for k, dummy := range globalObjects {
+//		dummy.Name = k
+//		ProtoDummy(dummy, b)
+//	}
+//
+//	globalObjects = map[string]*Dummy{}
+//}
