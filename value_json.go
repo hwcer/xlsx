@@ -10,11 +10,13 @@ import (
 
 func writeValueJson(sheets []*Sheet) {
 	logger.Trace("======================开始生成JSON数据======================")
-	data := map[string]any{}
+	//data := map[string]any{}
 	var errs []error
 	for _, sheet := range sheets {
 		if v, e := sheet.Values(); len(e) == 0 {
-			data[sheet.ProtoName] = v
+			if e2 := writeFile(sheet.ProtoName, v); e2 != nil {
+				errs = append(errs, e2)
+			}
 		} else {
 			errs = append(errs, e...)
 		}
@@ -27,14 +29,18 @@ func writeValueJson(sheets []*Sheet) {
 		//os.Exit(0)
 	}
 
+}
+
+func writeFile(name string, data any) error {
 	b, err := json.Marshal(data)
 	if err != nil {
-		logger.Fatal(err)
+		return err
 	}
 
-	file := filepath.Join(cosgo.Config.GetString(FlagsNameJson), "data.json")
+	file := filepath.Join(cosgo.Config.GetString(FlagsNameJson), name+".json")
 	if err = os.WriteFile(file, b, os.ModePerm); err != nil {
-		logger.Fatal(err)
+		return err
 	}
-	logger.Trace("JSON Data File:%v", file)
+	//logger.Trace("JSON Data File:%v", file)
+	return nil
 }

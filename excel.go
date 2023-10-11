@@ -63,16 +63,34 @@ func parseSheet(v *xlsx.Sheet) (sheet *Sheet) {
 		logger.Debug("表[%v]字段为空已经跳过", sheet.SheetName)
 		return nil
 	}
+	//格式化ProtoName
+	sheet.ProtoName = strings.TrimSpace(sheet.ProtoName)
+	sheet.ProtoName = strings.TrimPrefix(sheet.ProtoName, "_")
+	sheet.ProtoName = FirstUpper(sheet.ProtoName)
+	i := strings.Index(sheet.ProtoName, "_")
+	for i > 0 {
+		sheet.ProtoName = sheet.ProtoName[0:i] + FirstUpper(sheet.ProtoName[i+1:])
+		i = strings.Index(sheet.ProtoName, "_")
+	}
 
 	if sheet.ProtoName == "" || strings.HasPrefix(sheet.SheetName, "~") || strings.HasPrefix(sheet.ProtoName, "~") {
 		return nil
 	}
+<<<<<<< HEAD
+
+=======
+>>>>>>> cabfa43f3ff1057a9154cc80e61d02d81319fa71
 	//sheet.LowerName = strings.ToLower(sheet.ProtoName)
 	var index int
 	for _, field := range sheet.Fields {
 		index++
+<<<<<<< HEAD
+		field.ProtoIndex = index
+		if field.ProtoRequire == FieldTypeNone {
+=======
 		field.protoIndex = index
 		if field.ProtoDesc != "" {
+>>>>>>> cabfa43f3ff1057a9154cc80e61d02d81319fa71
 			field.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
 		}
 	}

@@ -46,7 +46,7 @@ func (this *Sheet) reParseObjField() {
 	max := this.SheetRows.MaxRow
 	var index int
 	var fields []*Field
-	for i := this.SheetSkip + 1; i <= max; i++ {
+	for i := this.SheetSkip; i <= max; i++ {
 		row, err := this.SheetRows.Row(i)
 		if err != nil {
 			logger.Trace("%v,err:%v", i, err)
@@ -68,6 +68,10 @@ func (this *Sheet) reParseObjField() {
 		} else {
 			field.ProtoType = FormatType("int")
 		}
+		if Config.Require != nil {
+			field.ProtoRequire = Config.Require(field.ProtoType)
+		}
+
 		if v := strings.TrimSpace(row.GetCell(3).Value); v != "" {
 			field.ProtoDesc = v
 		}

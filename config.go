@@ -2,7 +2,6 @@ package xlsx
 
 import (
 	"github.com/tealeg/xlsx/v3"
-	"strings"
 )
 
 type SheetType int8
@@ -57,6 +56,40 @@ type ParserSheetType interface {
 }
 
 type config struct {
+<<<<<<< HEAD
+	Proto func() string //可以加人proto全局对象
+	//Suffix  string                    //表名结尾
+	Package string                   //包名
+	Summary string                   //总表名,留空不生成总表
+	Parser  func(*xlsx.Sheet) Parser //解析器
+	//Tables  map[string]SheetType      //表结构
+	Require func(string) ProtoRequire //格式化类型
+}
+
+var Config = &config{
+	//Suffix:  "",
+	Package: "data",
+	Summary: "data",
+	//Tables:  map[string]SheetType{},
+}
+
+//func (this *config) SetTableType(t SheetType, names ...string) {
+//	for _, k := range names {
+//		this.Tables[strings.ToUpper(k)] = t
+//	}
+//}
+//
+//func (this *config) GetTableType(name string) SheetType {
+//	k := strings.ToUpper(name)
+//	return this.Tables[k]
+//}
+
+//func init() {
+//	Config.SetTableType(TableTypeMap, "map")
+//	Config.SetTableType(TableTypeObj, "kv", "kvs", "obj", "object")
+//	Config.SetTableType(TableTypeArr, "arr", "array", "slice")
+//}
+=======
 	Proto      func() string            //可以加人proto全局对象
 	Suffix     string                   //表名结尾
 	Package    string                   //包名
@@ -88,3 +121,4 @@ func init() {
 	Config.SetTableType(SheetTypeObj, "kv", "kvs", "obj", "object")
 	Config.SetTableType(SheetTypeArr, "arr", "array", "slice")
 }
+>>>>>>> cabfa43f3ff1057a9154cc80e61d02d81319fa71
