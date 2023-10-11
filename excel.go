@@ -76,26 +76,20 @@ func parseSheet(v *xlsx.Sheet) (sheet *Sheet) {
 	if sheet.ProtoName == "" || strings.HasPrefix(sheet.SheetName, "~") || strings.HasPrefix(sheet.ProtoName, "~") {
 		return nil
 	}
-<<<<<<< HEAD
 
-=======
->>>>>>> cabfa43f3ff1057a9154cc80e61d02d81319fa71
 	//sheet.LowerName = strings.ToLower(sheet.ProtoName)
 	var index int
 	for _, field := range sheet.Fields {
 		index++
-<<<<<<< HEAD
 		field.ProtoIndex = index
 		if field.ProtoRequire == FieldTypeNone {
-=======
-		field.protoIndex = index
-		if field.ProtoDesc != "" {
->>>>>>> cabfa43f3ff1057a9154cc80e61d02d81319fa71
 			field.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
+		} else {
+			field.ProtoDesc = field.ProtoName
 		}
 	}
 
-	if sheet.SheetType == SheetTypeObj {
+	if sheet.SheetType == TableTypeObj {
 		sheet.reParseObjField()
 	}
 

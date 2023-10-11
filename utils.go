@@ -10,19 +10,6 @@ import (
 	"strings"
 )
 
-var protoValueType = map[string]bool{}
-
-func init() {
-	protoValueType["int32"] = true
-	protoValueType["int64"] = true
-	protoValueType["float"] = true
-	protoValueType["double"] = true
-	protoValueType["string"] = true
-}
-func IsProtoValue(v string) bool {
-	return protoValueType[v]
-}
-
 func Ignore(f string) bool {
 	_, name := filepath.Split(f)
 	if strings.HasPrefix(name, "~") {
@@ -173,8 +160,11 @@ func FormatType(t string) string {
 	return t
 }
 
-// FormatValue  todo  ProtoRepeated 自动切割
-func FormatValue(v string, t string, repeated bool) (r any, err error) {
+func FormatValue(row *xlsx.Row, i int, t string) (r any, err error) {
+	var v string
+	if c := row.GetCell(i); c != nil {
+		v = strings.TrimSpace(c.Value)
+	}
 	switch t {
 	case "int", "int32":
 		if v == "" {

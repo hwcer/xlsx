@@ -9,33 +9,31 @@ import (
 
 var tpl *template.Template
 
-// TemplateTitle 包信息模版
 const TemplateTitle = `syntax = "proto3";
 option go_package = "./;<% .Package %>";
 `
 
-// TemplateDummy 全局子对象模版
 const TemplateDummy = `message <%.Name%>{ <%range .Fields%>
 	<%.Type%> <%.Name%> = <%.ProtoIndex%>;<%end%>
 }
 `
 
-// TemplateMessage 基本表结构
 const TemplateMessage = `
+<%-  $suffix:=.Suffix %>
 <%- range .Sheets%>
-message <%.ProtoName%>{
+message <%.ProtoName%><%$suffix%>{
 	<%- range .Fields %>
 	<%ProtoRequire .%> <%.Name%> = <%.ProtoIndex%>; //<% .ProtoDesc%><%end%>
 }
 <%- if IsArray .SheetType %>
-message <%.ProtoName%>Array{
-	repeated <%.ProtoName%> Coll = 1;
+message <%.ProtoName%><%$suffix%>Array{
+	repeated <%.ProtoName%><%$suffix%> Coll = 1;
 }
 <%- end%>
 <%- end%>
 `
 
-// TemplateSummary 总表模版
+// TemplateSummary 输出一个总表
 const TemplateSummary = `
 message <%.Name%>{
 <%- range .Sheets%>
@@ -55,7 +53,7 @@ func init() {
 }
 
 func TemplateIsArray(t SheetType) bool {
-	return t == SheetTypeArr
+	return t == TableTypeArr
 }
 
 func TemplateProtoRequire(field *Field) string {
@@ -73,20 +71,17 @@ func TemplateProtoRequire(field *Field) string {
 }
 
 func TemplateSummaryType(sheet *Sheet) string {
+	primary := sheet.Fields[0]
+	var t string
 	switch sheet.SheetType {
-	case SheetTypeObj:
+	case TableTypeObj:
 		return sheet.ProtoName
-<<<<<<< HEAD
 	case TableTypeArr:
-		return fmt.Sprintf("%vArray", sheet.ProtoName)
-=======
-	case SheetTypeArr:
 		t = fmt.Sprintf("%v%vArray", sheet.ProtoName, Config.Suffix)
->>>>>>> cabfa43f3ff1057a9154cc80e61d02d81319fa71
 	default:
-		primary := sheet.Fields[0]
-		return fmt.Sprintf("map<%v,%v>", primary.ProtoType, sheet.ProtoName)
+		t = fmt.Sprintf("%v%v", sheet.ProtoName, Config.Suffix)
 	}
+	return fmt.Sprintf("map<%v,%v>", primary.ProtoType, t)
 }
 
 func ProtoTitle(builder *strings.Builder) {
@@ -123,10 +118,10 @@ func ProtoMessage(sheets []*Sheet, builder *strings.Builder) {
 		logger.Fatal(err)
 	}
 	data := &struct {
-		//Suffix string
+		Suffix string
 		Sheets []*Sheet
 	}{
-		//Suffix: Config.Suffix,
+		Suffix: Config.Suffix,
 		Sheets: sheets,
 	}
 
