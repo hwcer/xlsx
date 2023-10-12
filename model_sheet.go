@@ -46,7 +46,7 @@ func (this *Sheet) reParseObjField() {
 	maxRow := this.SheetRows.MaxRow
 	var index int
 	var fields []*Field
-	for i := this.SheetSkip + 1; i <= maxRow; i++ {
+	for i := this.SheetSkip; i <= maxRow; i++ {
 		row, err := this.SheetRows.Row(i)
 		if err != nil {
 			logger.Trace("%v,err:%v", i, err)
@@ -63,7 +63,7 @@ func (this *Sheet) reParseObjField() {
 		//field.ProtoName = key
 		//
 		//
-		//field.ProtoIndex = index
+		field.ProtoIndex = index
 		//field.ProtoRequire = FieldTypeNone
 		if v := strings.TrimSpace(row.GetCell(2).Value); v != "" {
 			field.ProtoType = ProtoBuffTypeFormat(v)
@@ -151,7 +151,7 @@ func (this *Sheet) Value(row *xlsx.Row) (map[string]any, error) {
 		if e != nil {
 			return nil, e
 		} else {
-			r[field.Type()] = v
+			r[field.Name] = v
 		}
 	}
 	return r, nil
