@@ -8,11 +8,11 @@ import (
 )
 
 type DummyField struct {
-	Type       string
 	Name       string
 	label      string //NameType
-	ProtoIndex int    //最终索引ProtoIndex
-	SheetIndex int    //表格中的索引
+	ProtoType  ProtoBuffType
+	ProtoIndex int //最终索引ProtoIndex
+	SheetIndex int //表格中的索引
 }
 
 func NewDummy() *Dummy {
@@ -37,16 +37,16 @@ func (this *Dummy) Get(name string) *DummyField {
 
 func (this *Dummy) Add(name, fieldType string, sheetIndex int) error {
 	name = strings.TrimSpace(name)
-	fieldType = FormatType(fieldType)
+	protoType := ProtoBuffTypeFormat(fieldType)
 	if field := this.Get(name); field != nil {
 		return fmt.Errorf("字段名重复:%v", name)
 	}
 	field := &DummyField{
-		Type:       fieldType,
 		Name:       name,
+		ProtoType:  protoType,
 		SheetIndex: sheetIndex,
 	}
-	field.label = fmt.Sprintf("%v%v", FirstUpper(field.Name), FirstUpper(field.Type))
+	field.label = fmt.Sprintf("%v%v", FirstUpper(field.Name), FirstUpper(string(protoType)))
 	this.Fields = append(this.Fields, field)
 	//this.Sheets = append(this.Sheets, sheetIndex)
 	return nil
@@ -72,13 +72,14 @@ func (this *Dummy) Compile() (string, error) {
 func (this *Dummy) Value(row *xlsx.Row) (map[string]any, error) {
 	r := map[string]any{}
 	for _, field := range this.Fields {
-		if c := row.GetCell(field.SheetIndex); c == nil {
-			continue
-		}
-		if v, err := FormatValue(row, field.SheetIndex, field.Type); err != nil {
-			return nil, err
-		} else {
-			r[field.Name] = v
+		cell := row.GetCell(field.SheetIndex)
+		handle := Require(field.ProtoType)
+		if cell != nil && handle != nil {
+			if v, err := handle.Value(cell.Value); err != nil {
+				return nil, err
+			} else {
+				r[field.Name] = v
+			}
 		}
 	}
 	return r, nil

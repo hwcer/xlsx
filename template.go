@@ -19,17 +19,11 @@ const TemplateDummy = `message <%.Name%>{ <%range .Fields%>
 `
 
 const TemplateMessage = `
-<%-  $suffix:=.Suffix %>
 <%- range .Sheets%>
-message <%.ProtoName%><%$suffix%>{
+message <%.ProtoName%>{
 	<%- range .Fields %>
 	<%ProtoRequire .%> <%.Name%> = <%.ProtoIndex%>; //<% .ProtoDesc%><%end%>
 }
-<%- if IsArray .SheetType %>
-message <%.ProtoName%><%$suffix%>Array{
-	repeated <%.ProtoName%><%$suffix%> Coll = 1;
-}
-<%- end%>
 <%- end%>
 `
 
@@ -45,23 +39,31 @@ message <%.Name%>{
 func init() {
 	tpl = template.New("")
 	tpl.Funcs(template.FuncMap{
-		"IsArray":      TemplateIsArray,
+		//"IsArray":      TemplateIsArray,
 		"SummaryType":  TemplateSummaryType,
 		"ProtoRequire": TemplateProtoRequire,
 	})
 	tpl.Delims("<%", "%>")
 }
 
-func TemplateIsArray(t SheetType) bool {
-	return t == TableTypeArr
-}
+//func TemplateIsArray(t SheetType) bool {
+//	return t == TableTypeArr
+//}
 
 func TemplateProtoRequire(field *Field) string {
-	if handle, ok := protoRequireHandles[field.ProtoRequire]; ok {
-		return handle.Require(field)
+	handle := Require(field.ProtoType)
+	protoType := field.Type()
+	if handle.Repeated() {
+		return fmt.Sprintf("%v %v", "repeated", protoType)
 	} else {
-		return field.ProtoType
+		return protoType
 	}
+
+	//if handle, ok := protoRequireHandles[field.ProtoRequire]; ok {
+	//	return handle.Require(field)
+	//} else {
+	//	return field.ProtoType
+	//}
 	//switch t {
 	//case FieldTypeArray, FieldTypeArrObj:
 	//	return "repeated "
@@ -72,16 +74,17 @@ func TemplateProtoRequire(field *Field) string {
 
 func TemplateSummaryType(sheet *Sheet) string {
 	primary := sheet.Fields[0]
-	var t string
+	//var t string
 	switch sheet.SheetType {
 	case TableTypeObj:
 		return sheet.ProtoName
-	case TableTypeArr:
-		t = fmt.Sprintf("%v%vArray", sheet.ProtoName, Config.Suffix)
+	//case TableTypeArr:
+	//	t = fmt.Sprintf("%v%vArray", sheet.ProtoName, Config.Suffix)
 	default:
-		t = fmt.Sprintf("%v%v", sheet.ProtoName, Config.Suffix)
+		//t = fmt.Sprintf("%v%v", sheet.ProtoName, Config.Suffix)
+		return fmt.Sprintf("map<%v,%v>", primary.ProtoType, sheet.ProtoName)
 	}
-	return fmt.Sprintf("map<%v,%v>", primary.ProtoType, t)
+	//return fmt.Sprintf("map<%v,%v>", primary.ProtoType, sheet.ProtoName)
 }
 
 func ProtoTitle(builder *strings.Builder) {
@@ -118,10 +121,10 @@ func ProtoMessage(sheets []*Sheet, builder *strings.Builder) {
 		logger.Fatal(err)
 	}
 	data := &struct {
-		Suffix string
+		//Suffix string
 		Sheets []*Sheet
 	}{
-		Suffix: Config.Suffix,
+		//Suffix: Config.Suffix,
 		Sheets: sheets,
 	}
 

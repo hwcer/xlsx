@@ -37,16 +37,16 @@ type Sheet struct {
 
 //const RowId = "id"
 
-type rowArr struct {
-	Coll []any
-}
+//type rowArr struct {
+//	Coll []any
+//}
 
 // 重新解析obj的字段
 func (this *Sheet) reParseObjField() {
-	max := this.SheetRows.MaxRow
+	maxRow := this.SheetRows.MaxRow
 	var index int
 	var fields []*Field
-	for i := this.SheetSkip + 1; i <= max; i++ {
+	for i := this.SheetSkip + 1; i <= maxRow; i++ {
 		row, err := this.SheetRows.Row(i)
 		if err != nil {
 			logger.Trace("%v,err:%v", i, err)
@@ -60,18 +60,16 @@ func (this *Sheet) reParseObjField() {
 		field := &Field{}
 		field.Name = key
 		field.Index = []int{1}
-		field.ProtoName = key
-		field.ProtoIndex = index
-		field.ProtoRequire = FieldTypeNone
+		//field.ProtoName = key
+		//
+		//
+		//field.ProtoIndex = index
+		//field.ProtoRequire = FieldTypeNone
 		if v := strings.TrimSpace(row.GetCell(2).Value); v != "" {
-			field.ProtoType = FormatType(v)
+			field.ProtoType = ProtoBuffTypeFormat(v)
 		} else {
-			field.ProtoType = FormatType("int")
+			field.ProtoType = ProtoBuffTypeFormat("int")
 		}
-		if Config.Require != nil {
-			field.ProtoRequire = Config.Require(field.ProtoType)
-		}
-
 		if v := strings.TrimSpace(row.GetCell(3).Value); v != "" {
 			field.ProtoDesc = v
 		}
@@ -93,8 +91,8 @@ func (this *Sheet) Values() (any, []error) {
 	r := map[string]any{}
 	var errs []error
 	var emptyCell []int
-	max := this.SheetRows.MaxRow
-	for i := this.SheetSkip; i <= max; i++ {
+	maxRow := this.SheetRows.MaxRow
+	for i := this.SheetSkip; i <= maxRow; i++ {
 		row, err := this.SheetRows.Row(i)
 		if err != nil {
 			logger.Trace("%v,err:%v", i, err)
@@ -123,19 +121,21 @@ func (this *Sheet) Values() (any, []error) {
 			errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
 			continue
 		}
-		//TODO
-		if this.SheetType == TableTypeArr {
-			if d, ok := r[id]; !ok {
-				d2 := &rowArr{}
-				d2.Coll = append(d2.Coll, val)
-				r[id] = d2
-			} else {
-				d2, _ := d.(*rowArr)
-				d2.Coll = append(d2.Coll, val)
-			}
-		} else {
-			r[id] = val
-		}
+		r[id] = val
+
+		////TODO
+		//if this.SheetType == TableTypeArr {
+		//	if d, ok := r[id]; !ok {
+		//		d2 := &rowArr{}
+		//		d2.Coll = append(d2.Coll, val)
+		//		r[id] = d2
+		//	} else {
+		//		d2, _ := d.(*rowArr)
+		//		d2.Coll = append(d2.Coll, val)
+		//	}
+		//} else {
+		//	r[id] = val
+		//}
 	}
 
 	if len(emptyCell) > 10 {
@@ -151,26 +151,26 @@ func (this *Sheet) Value(row *xlsx.Row) (map[string]any, error) {
 		if e != nil {
 			return nil, e
 		} else {
-			r[field.ProtoName] = v
+			r[field.Type()] = v
 		}
 	}
 	return r, nil
 }
 
-// GlobalObjectsProtoName 通过ProtoName生成对象
+// GlobalObjectsProtoName 通过ProtoName生成子对象
 func (this *Sheet) GlobalObjectsProtoName() {
 	for _, field := range this.Fields {
-		if (field.ProtoRequire == FieldTypeObject || field.ProtoRequire == FieldTypeArrObj) && field.ProtoName != "" {
-			name := field.ProtoName
+		if len(field.Dummy) > 0 {
+			t := field.Type()
 			dummy := field.Dummy[0]
 			if k, ok := globalObjects.Search(dummy); ok {
-				field.ProtoType = k
-				if name != k {
-					logger.Trace("冗余的对象名称%v.%v,建议修改成%v", this.ProtoName, name, k)
+				//field.ProtoType = k
+				if t != k {
+					logger.Trace("冗余的对象名称%v.%v,建议修改成%v", this.ProtoName, t, k)
 				}
 			} else {
-				field.ProtoType = name
-				globalObjects[name] = dummy
+				//field.ProtoType = name
+				globalObjects[t] = dummy
 			}
 		}
 	}
@@ -179,29 +179,11 @@ func (this *Sheet) GlobalObjectsProtoName() {
 // GlobalObjectsAutoName 自动命名
 func (this *Sheet) GlobalObjectsAutoName() {
 	for _, field := range this.Fields {
-		if (field.ProtoRequire == FieldTypeObject || field.ProtoRequire == FieldTypeArrObj) && field.ProtoName == "" {
+		if len(field.Dummy) > 0 {
 			dummy := field.Dummy[0]
-			if k, ok := globalObjects.Search(dummy); ok {
-				field.ProtoType = k
-			} else {
-				field.ProtoType = dummy.Label
+			if _, ok := globalObjects.Search(dummy); !ok {
 				globalObjects[dummy.Label] = dummy
 			}
 		}
 	}
-}
-
-func buildGlobalObjects(b *strings.Builder, sheets []*Sheet) {
-	for _, s := range sheets {
-		s.GlobalObjectsProtoName()
-	}
-	for _, s := range sheets {
-		s.GlobalObjectsAutoName()
-	}
-	for k, dummy := range globalObjects {
-		dummy.Name = k
-		ProtoDummy(dummy, b)
-	}
-
-	globalObjects = map[string]*Dummy{}
 }

@@ -48,8 +48,8 @@ func LoadExcel(dir string) {
 
 func parseSheet(v *xlsx.Sheet) (sheet *Sheet) {
 	//countArr := []int{1, 101, 201, 301}
-	max := v.MaxRow
-	logger.Trace("----开始读取表格[%v],共有%v行", v.Name, max)
+	maxRow := v.MaxRow
+	logger.Trace("----开始读取表格[%v],共有%v行", v.Name, maxRow)
 	sheet = &Sheet{SheetName: v.Name, SheetRows: v}
 	parse := Config.Parser(v)
 	var ok bool
@@ -79,16 +79,24 @@ func parseSheet(v *xlsx.Sheet) (sheet *Sheet) {
 
 	//sheet.LowerName = strings.ToLower(sheet.ProtoName)
 	var index int
+	var fields []*Field
 	for _, field := range sheet.Fields {
+		if h := Require(field.ProtoType); h == nil {
+			logger.Alert("****************未知的数据类型,Sheet:%v ,Type:%v", sheet.SheetName, field.ProtoType)
+			continue
+		}
 		index++
 		field.ProtoIndex = index
-		if field.ProtoRequire == FieldTypeNone {
-			field.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
-		} else {
-			field.ProtoDesc = field.ProtoName
-		}
+		field.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
+		fields = append(fields, field)
+		//
+		//if field.ProtoRequire == FieldTypeNone {
+		//	field.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
+		//} else {
+		//	field.ProtoDesc = field.ProtoName
+		//}
 	}
-
+	sheet.Fields = fields
 	if sheet.SheetType == TableTypeObj {
 		sheet.reParseObjField()
 	}

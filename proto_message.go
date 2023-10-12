@@ -54,8 +54,8 @@ func writeProtoMessage(sheets []*Sheet) {
 	b := &strings.Builder{}
 	ProtoTitle(b)
 	b.WriteString("\n//全局对象......\n")
-	if Config.Proto != nil {
-		b.WriteString(Config.Proto())
+	if Config.Message != nil {
+		b.WriteString(Config.Message())
 		b.WriteString("\n")
 	}
 	buildGlobalObjects(b, sheets)
@@ -67,4 +67,19 @@ func writeProtoMessage(sheets []*Sheet) {
 		logger.Fatal(err)
 	}
 	logger.Trace("Proto Message File:%v", file)
+}
+
+func buildGlobalObjects(b *strings.Builder, sheets []*Sheet) {
+	for _, s := range sheets {
+		s.GlobalObjectsProtoName()
+	}
+	for _, s := range sheets {
+		s.GlobalObjectsAutoName()
+	}
+	for k, dummy := range globalObjects {
+		dummy.Name = k
+		ProtoDummy(dummy, b)
+	}
+
+	globalObjects = map[string]*Dummy{}
 }

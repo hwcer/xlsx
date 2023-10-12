@@ -6,7 +6,6 @@ import (
 	"github.com/tealeg/xlsx/v3"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
@@ -144,6 +143,7 @@ func preparePath() {
 
 }
 
+/*
 func FormatType(t string) string {
 	switch t {
 	case "int", "int32":
@@ -196,3 +196,4 @@ func FormatValue(row *xlsx.Row, i int, t string) (r any, err error) {
 	}
 	return
 }
+*/
