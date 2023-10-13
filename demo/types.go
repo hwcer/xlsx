@@ -3,13 +3,12 @@ package main
 import (
 	"fmt"
 	cosxls "github.com/hwcer/xlsx"
-	"github.com/tealeg/xlsx/v3"
 )
 
 const (
-	FieldTypeArray  cosxls.ProtoRequire = cosxls.FieldTypeArray
-	FieldTypeObject                     = cosxls.FieldTypeObject
-	FieldTypeArrObj                     = cosxls.FieldTypeArrObj
+	FieldTypeArray  cosxls.ProtoBuffType = "Array"
+	FieldTypeObject                      = "Object"
+	FieldTypeArrObj                      = "ArrObj"
 )
 
 func init() {
@@ -21,50 +20,51 @@ func init() {
 type Array struct {
 }
 
-func (this *Array) Value(field *cosxls.Field, row *xlsx.Row) (any, error) {
+func (this *Array) Type() string {
+	return "int32"
+}
+
+func (this *Array) Value(vs ...string) (any, error) {
 	var r []any
-	for _, i := range field.Index {
-		if v, err := cosxls.FormatValue(row, i, field.ProtoType); err == nil {
-			r = append(r, v)
+	parser := cosxls.Require(cosxls.ProtoBuffTypeInt32)
+	for _, i := range vs {
+		if v, e := parser.Value(i); e != nil {
+			return nil, e
 		} else {
-			return nil, err
+			r = append(r, v)
 		}
 	}
 	return r, nil
 }
 
-func (this *Array) Require(field *cosxls.Field) string {
-	return fmt.Sprintf("repeated %v", field.ProtoType)
+func (this *Array) Repeated() bool {
+	return true
 }
 
 type Object struct {
 }
 
-func (this *Object) Value(field *cosxls.Field, row *xlsx.Row) (any, error) {
-	return field.Dummy[0].Value(row)
+func (this *Object) Type() string {
+	return string(FieldTypeObject)
 }
 
-func (this *Object) Require(field *cosxls.Field) string {
-	return fmt.Sprintf("%v", field.ProtoType)
+func (this *Object) Value(...string) (any, error) {
+	return nil, fmt.Errorf("对象无法直接获取值")
+}
+func (this *Object) Repeated() bool {
+	return false
 }
 
 type ArrObj struct {
 }
 
-func (this *ArrObj) Value(field *cosxls.Field, row *xlsx.Row) (any, error) {
-	var r []any
-	var v map[string]any
-	var err error
-	for _, dummy := range field.Dummy {
-		if v, err = dummy.Value(row); err == nil && len(v) > 0 {
-			r = append(r, v)
-		} else if err != nil {
-			return nil, err
-		}
-	}
-	return r, nil
+func (this *ArrObj) Type() string {
+	return string(FieldTypeArrObj)
 }
 
-func (this *ArrObj) Require(field *cosxls.Field) string {
-	return fmt.Sprintf("%v", field.ProtoType)
+func (this *ArrObj) Value(...string) (any, error) {
+	return nil, fmt.Errorf("对象无法直接获取值")
+}
+func (this *ArrObj) Repeated() bool {
+	return true
 }

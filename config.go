@@ -56,6 +56,15 @@ type ParserSheetType interface {
 	SheetType() SheetType
 }
 
+// StructType Struct表(kv模式)下解析方式
+// key index
+// val index
+// type index type默认为int32
+// desc 描述
+
+type ParserStructType interface {
+	StructType() [4]int
+}
 type config struct {
 	//Suffix  string                   //表名结尾
 	Package string                   //包名

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/hwcer/logger"
-	xlsx2 "github.com/hwcer/xlsx"
+	cosxls "github.com/hwcer/xlsx"
 	"github.com/tealeg/xlsx/v3"
 	"strings"
 )
@@ -34,7 +34,7 @@ func (this *flags) HasAndPop(s string) (r string, has bool) {
 }
 
 type Field struct {
-	xlsx2.Field
+	cosxls.Field
 	flags flags
 }
 
@@ -48,7 +48,7 @@ func (this *Field) compile() bool {
 	if this.Name == "" {
 		return false
 	}
-	if !(this.ProtoRequire == FieldTypeObject || this.ProtoRequire == FieldTypeArrObj) {
+	if !(this.ProtoType == FieldTypeObject || this.ProtoType == FieldTypeArrObj) {
 		return len(this.flags) == 0
 	}
 	if len(this.Dummy) == 0 {
@@ -65,12 +65,11 @@ func (this *Field) compile() bool {
 			logger.Fatal("%v 子对象类型不统一:%v -- %v", this.Name, label, s)
 		}
 	}
-	this.ProtoType = label
 	return len(this.flags) == 0
 }
 
 // 寻找结束符号
-func (this *Field) ending(cell *xlsx.Cell, index int, suffix, protoType string) bool {
+func (this *Field) ending(cell *xlsx.Cell, index int, suffix string, protoType cosxls.ProtoBuffType) bool {
 	if suffix == "" {
 		return this.isEnd()
 	}
@@ -85,7 +84,7 @@ func (this *Field) ending(cell *xlsx.Cell, index int, suffix, protoType string) 
 			flag = append(flag, v)
 		}
 	}
-	if !(this.ProtoRequire == FieldTypeObject || this.ProtoRequire == FieldTypeArrObj) {
+	if !(this.ProtoType == FieldTypeObject || this.ProtoType == FieldTypeArrObj) {
 		return this.isEnd()
 	}
 	if len(k) == 0 {
@@ -108,10 +107,11 @@ func (this *Field) ending(cell *xlsx.Cell, index int, suffix, protoType string) 
 
 // Parse [{   [[  {  [
 // protoType
-func (this *Field) parse(protoType string, cell *xlsx.Cell, index int) (end bool) {
-	if protoType == "" {
+func (this *Field) parse(fieldType cosxls.ProtoBuffType, cell *xlsx.Cell, index int) (end bool) {
+	if fieldType == "" {
 		return false
 	}
+	var protoType cosxls.ProtoBuffType
 	//this.begin += 1
 	this.Index = append(this.Index, index)
 	value := cell.Value
@@ -120,49 +120,46 @@ func (this *Field) parse(protoType string, cell *xlsx.Cell, index int) (end bool
 	}
 	//var protoName string
 	if i, j := strings.Index(value, "<"), strings.Index(value, ">"); i >= 0 && j >= 0 {
-		this.ProtoName = xlsx2.FirstUpper(value[i+1 : j])
+		this.Name = cosxls.FirstUpper(value[i+1 : j])
 		value = value[j+1:]
 	}
 	//begin := false //不能在同一个单元格内同时开始和结束
 	name, suffix := "", ""
-	var protoRequire xlsx2.ProtoRequire
 	if i := strings.Index(value, "[{"); i >= 0 {
 		//begin = true
 		name = value[0:i]
 		suffix = value[i+2:]
 		this.flags = append(this.flags, "]", "}")
-		this.Dummy = append(this.Dummy, xlsx2.NewDummy())
-		protoRequire = xlsx2.FieldTypeArrObj
+		this.Dummy = append(this.Dummy, cosxls.NewDummy())
+		protoType = FieldTypeArrObj
 	} else if i = strings.Index(value, "["); i >= 0 {
 		//begin = true
 		name = value[0:i]
 		//suffix = value[i:]
 		this.flags = append(this.flags, "]")
-		protoRequire = xlsx2.FieldTypeArray
+		protoType = FieldTypeArray
 	} else if i = strings.Index(value, "{"); i >= 0 {
 		//begin = true
 		name = value[0:i]
 		suffix = value[i+1:]
 		this.flags = append(this.flags, "}")
-		this.Dummy = append(this.Dummy, xlsx2.NewDummy())
-		protoRequire = FieldTypeObject
+		this.Dummy = append(this.Dummy, cosxls.NewDummy())
+		protoType = FieldTypeObject
 	} else {
 		name = value
 		suffix = value
+		protoType = fieldType
 	}
-	if len(this.Index) == 1 {
-		this.Name = name //第一个名字为准
-		this.ProtoIndex = index + 1
-		this.ProtoRequire = protoRequire
-		if this.ProtoRequire == xlsx2.FieldTypeNone || this.ProtoRequire == FieldTypeArray {
-			this.ProtoType = protoType
-		}
 
+	//第一个名字和类型为准
+	if len(this.Index) == 1 {
+		this.Name = name
+		this.ProtoType = protoType
 	}
-	if this.ProtoRequire == xlsx2.FieldTypeNone {
+	if this.ProtoType != FieldTypeArrObj && this.ProtoType != FieldTypeArray && this.ProtoType != FieldTypeObject {
 		return true
 	}
-	return this.ending(cell, index, suffix, protoType)
+	return this.ending(cell, index, suffix, fieldType)
 	//if !begin {
 	//	return this.ending(cell)
 	//}

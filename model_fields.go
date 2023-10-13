@@ -30,10 +30,11 @@ func (this *Field) Type() string {
 
 // Value 根据一行表格获取值
 func (this *Field) Value(row *xlsx.Row) (ret any, err error) {
-	if handle := Require(this.ProtoType); handle != nil {
-		ret, err = this.getProtoValue(row, handle)
-	} else if len(this.Dummy) > 0 {
+	handle := Require(this.ProtoType)
+	if len(this.Dummy) > 0 {
 		ret, err = this.getDummyValue(row, handle)
+	} else if handle != nil {
+		ret, err = this.getProtoValue(row, handle)
 	} else {
 		err = fmt.Errorf("无法识别的类型(%v)", this.Name)
 	}

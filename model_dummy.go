@@ -35,9 +35,8 @@ func (this *Dummy) Get(name string) *DummyField {
 	return nil
 }
 
-func (this *Dummy) Add(name, fieldType string, sheetIndex int) error {
+func (this *Dummy) Add(name string, protoType ProtoBuffType, sheetIndex int) error {
 	name = strings.TrimSpace(name)
-	protoType := ProtoBuffTypeFormat(fieldType)
 	if field := this.Get(name); field != nil {
 		return fmt.Errorf("字段名重复:%v", name)
 	}

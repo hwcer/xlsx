@@ -1,0 +1,33 @@
+syntax = "proto3";
+option go_package = "./;data";
+
+//全局对象......
+message Object{ 
+	int32 id = 1;
+	int32 num = 2;
+	int32 per = 3;
+}
+message ArrObj{ 
+	int32 id = 1;
+	int32 num = 2;
+}
+
+//数据对象......
+
+message Activity{
+	int32 id = 1; //活动
+	string TType = 2; //时间格式
+	repeated int32 Arr = 3; //
+	Object Obj = 4; //
+	repeated ArrObj ArrObj = 5; //id
+}
+message Base{
+	int32 lv = 1; //等级
+	int64 exp = 2; //经验
+	string name = 3; //名称
+}
+
+message data{
+	map<int32,Activity> Activity=1;
+	Base Base=2;
+}

@@ -14,7 +14,7 @@ option go_package = "./;<% .Package %>";
 `
 
 const TemplateDummy = `message <%.Name%>{ <%range .Fields%>
-	<%.Type%> <%.Name%> = <%.ProtoIndex%>;<%end%>
+	<%DummyRequire .%> <%.Name%> = <%.ProtoIndex%>;<%end%>
 }
 `
 
@@ -42,6 +42,7 @@ func init() {
 		//"IsArray":      TemplateIsArray,
 		"SummaryType":  TemplateSummaryType,
 		"ProtoRequire": TemplateProtoRequire,
+		"DummyRequire": TemplateDummyRequire,
 	})
 	tpl.Delims("<%", "%>")
 }
@@ -58,18 +59,16 @@ func TemplateProtoRequire(field *Field) string {
 	} else {
 		return protoType
 	}
+}
 
-	//if handle, ok := protoRequireHandles[field.ProtoRequire]; ok {
-	//	return handle.Require(field)
-	//} else {
-	//	return field.ProtoType
-	//}
-	//switch t {
-	//case FieldTypeArray, FieldTypeArrObj:
-	//	return "repeated "
-	//default:
-	//	return ""
-	//}
+func TemplateDummyRequire(field *DummyField) string {
+	handle := Require(field.ProtoType)
+	protoType := string(field.ProtoType)
+	if handle.Repeated() {
+		return fmt.Sprintf("%v %v", "repeated", protoType)
+	} else {
+		return protoType
+	}
 }
 
 func TemplateSummaryType(sheet *Sheet) string {

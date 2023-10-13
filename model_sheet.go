@@ -33,6 +33,7 @@ type Sheet struct {
 	SheetType  SheetType   //输出类型,kv arr map
 	ProtoName  string      // protoName 是pb.go中文件的名字，
 	ProtoIndex int         //总表编号
+	Parser     Parser
 }
 
 //const RowId = "id"
@@ -46,12 +47,17 @@ func (this *Sheet) reParseObjField() {
 	maxRow := this.SheetRows.MaxRow
 	var index int
 	var fields []*Field
+	indexes := [4]int{0, 1, 2, 3}
+	if p, ok := this.Parser.(ParserStructType); ok {
+		indexes = p.StructType()
+	}
+
 	for i := this.SheetSkip; i <= maxRow; i++ {
 		row, err := this.SheetRows.Row(i)
 		if err != nil {
 			logger.Trace("%v,err:%v", i, err)
 		}
-		key := strings.TrimSpace(row.GetCell(0).Value)
+		key := strings.TrimSpace(row.GetCell(indexes[0]).Value)
 		if utils.Empty(key) {
 			continue
 		}
@@ -59,18 +65,21 @@ func (this *Sheet) reParseObjField() {
 		index++
 		field := &Field{}
 		field.Name = key
-		field.Index = []int{1}
+		field.Index = []int{indexes[1]}
 		//field.ProtoName = key
 		//
 		//
 		field.ProtoIndex = index
 		//field.ProtoRequire = FieldTypeNone
-		if v := strings.TrimSpace(row.GetCell(2).Value); v != "" {
-			field.ProtoType = ProtoBuffTypeFormat(v)
-		} else {
+		if indexes[2] >= 0 {
+			if v := strings.TrimSpace(row.GetCell(indexes[2]).Value); v != "" {
+				field.ProtoType = ProtoBuffTypeFormat(v)
+			}
+		}
+		if field.ProtoType == "" {
 			field.ProtoType = ProtoBuffTypeFormat("int")
 		}
-		if v := strings.TrimSpace(row.GetCell(3).Value); v != "" {
+		if v := strings.TrimSpace(row.GetCell(indexes[3]).Value); v != "" {
 			field.ProtoDesc = v
 		}
 		fields = append(fields, field)
@@ -88,6 +97,9 @@ func (this *Sheet) GetField(name string) *Field {
 }
 
 func (this *Sheet) Values() (any, []error) {
+	if this.SheetType == TableTypeObj {
+		return this.kv()
+	}
 	r := map[string]any{}
 	var errs []error
 	var emptyCell []int
@@ -103,18 +115,6 @@ func (this *Sheet) Values() (any, []error) {
 			emptyCell = append(emptyCell, row.GetCoordinate()+1)
 			continue
 		}
-		//KV 模式直接定位 0,1 列
-		if this.SheetType == TableTypeObj {
-			if field := this.GetField(id); field != nil {
-				var data any
-				if data, err = field.Value(row); err == nil {
-					r[id] = data
-				} else {
-					errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
-				}
-			}
-			continue
-		}
 		//MAP ARRAY
 		val, err := this.Value(row)
 		if err != nil {
@@ -122,20 +122,43 @@ func (this *Sheet) Values() (any, []error) {
 			continue
 		}
 		r[id] = val
+	}
 
-		////TODO
-		//if this.SheetType == TableTypeArr {
-		//	if d, ok := r[id]; !ok {
-		//		d2 := &rowArr{}
-		//		d2.Coll = append(d2.Coll, val)
-		//		r[id] = d2
-		//	} else {
-		//		d2, _ := d.(*rowArr)
-		//		d2.Coll = append(d2.Coll, val)
-		//	}
-		//} else {
-		//	r[id] = val
-		//}
+	if len(emptyCell) > 10 {
+		logger.Trace("%v共%v行ID为空已经忽略:%v", this.ProtoName, len(emptyCell), emptyCell)
+	}
+	return r, errs
+}
+
+// kv 模式
+func (this *Sheet) kv() (any, []error) {
+	r := map[string]any{}
+	var errs []error
+	var emptyCell []int
+	maxRow := this.SheetRows.MaxRow
+	indexes := [4]int{0, 1, 2, 3}
+	if p, ok := this.Parser.(ParserStructType); ok {
+		indexes = p.StructType()
+	}
+	for i := this.SheetSkip; i <= maxRow; i++ {
+		row, err := this.SheetRows.Row(i)
+		if err != nil {
+			logger.Trace("%v,err:%v", i, err)
+		}
+
+		id := strings.TrimSpace(row.GetCell(indexes[0]).Value)
+		if utils.Empty(id) {
+			emptyCell = append(emptyCell, row.GetCoordinate()+1)
+			continue
+		}
+		if field := this.GetField(id); field != nil {
+			var data any
+			if data, err = field.Value(row); err == nil {
+				r[id] = data
+			} else {
+				errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
+			}
+		}
 	}
 
 	if len(emptyCell) > 10 {

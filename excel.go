@@ -51,15 +51,15 @@ func parseSheet(v *xlsx.Sheet) (sheet *Sheet) {
 	maxRow := v.MaxRow
 	logger.Trace("----开始读取表格[%v],共有%v行", v.Name, maxRow)
 	sheet = &Sheet{SheetName: v.Name, SheetRows: v}
-	parse := Config.Parser(v)
+	sheet.Parser = Config.Parser(v)
 	var ok bool
-	if sheet.SheetSkip, sheet.ProtoName, ok = parse.Verify(); !ok {
+	if sheet.SheetSkip, sheet.ProtoName, ok = sheet.Parser.Verify(); !ok {
 		return nil
 	}
-	if i, ok := parse.(ParserSheetType); ok {
+	if i, ok := sheet.Parser.(ParserSheetType); ok {
 		sheet.SheetType = i.SheetType()
 	}
-	if sheet.Fields = parse.Fields(); len(sheet.Fields) == 0 {
+	if sheet.Fields = sheet.Parser.Fields(); len(sheet.Fields) == 0 {
 		logger.Debug("表[%v]字段为空已经跳过", sheet.SheetName)
 		return nil
 	}
