@@ -4,23 +4,7 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="36b42238-1c04-42f2-b07e-b4f52ad1dab0" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/config.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/bin/xlsx.exe" beforeDir="false" afterPath="$PROJECT_DIR$/demo/bin/xlsx.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/data/data.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/data/message.pb.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/data/message.proto" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/data/测试表.xlsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/data/配置索引.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/field.go" beforeDir="false" afterPath="$PROJECT_DIR$/demo/field.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/header.go" beforeDir="false" afterPath="$PROJECT_DIR$/demo/parser.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/demo/types.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/excel.go" beforeDir="false" afterPath="$PROJECT_DIR$/excel.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_dummy.go" beforeDir="false" afterPath="$PROJECT_DIR$/model_dummy.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_fields.go" beforeDir="false" afterPath="$PROJECT_DIR$/model_fields.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_sheet.go" beforeDir="false" afterPath="$PROJECT_DIR$/model_sheet.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/template.go" beforeDir="false" afterPath="$PROJECT_DIR$/template.go" afterDir="false" />
-    </list>
+    <list default="true" id="36b42238-1c04-42f2-b07e-b4f52ad1dab0" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -33,9 +17,9 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 1
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
   <component name="ProjectId" id="2WhJLfH2V4Axv4qDdFs5W9WC7zJ" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -52,7 +36,7 @@
     "WebServerToolWindowFactoryState": "false",
     "go.import.settings.migrated": "true",
     "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "D:/Golang/project/design/server/src",
+    "last_opened_file_path": "D:/Golang/project",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)"
   }
