@@ -81,12 +81,14 @@ func (this *protoBuffTypeParseDefault) Value(vs ...string) (r any, err error) {
 		if v == "" {
 			r = int64(0)
 		} else {
+			v = this.trimInt(v)
 			r, err = strconv.Atoi(v)
 		}
 	case ProtoBuffTypeUint32, ProtoBuffTypeUint64:
 		if v == "" {
 			r = uint64(0)
 		} else {
+			v = this.trimInt(v)
 			r, err = strconv.ParseUint(v, 10, 64)
 		}
 	case ProtoBuffTypeFloat, ProtoBuffTypeDouble:
@@ -111,4 +113,11 @@ func (this *protoBuffTypeParseDefault) Value(vs ...string) (r any, err error) {
 
 func (*protoBuffTypeParseDefault) Repeated() bool {
 	return false
+}
+
+func (*protoBuffTypeParseDefault) trimInt(s string) string {
+	if i := strings.Index(s, "."); i > 0 {
+		s = s[0:i]
+	}
+	return s
 }
