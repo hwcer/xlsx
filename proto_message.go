@@ -62,7 +62,7 @@ func writeProtoMessage(sheets []*Sheet) {
 
 	b.WriteString("\n//数据对象......\n")
 	ProtoMessage(sheets, b)
-	file := filepath.Join(cosgo.Config.GetString(FlagsNameOut), "message.proto")
+	file := filepath.Join(cosgo.Config.GetString(FlagsNameOut), Config.Proto)
 	if err := os.WriteFile(file, []byte(b.String()), os.ModePerm); err != nil {
 		logger.Fatal(err)
 	}

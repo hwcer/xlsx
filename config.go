@@ -67,6 +67,7 @@ type ParserStructType interface {
 }
 type config struct {
 	//Suffix  string                   //表名结尾
+	Proto   string                   //proto 文件名
 	Package string                   //包名
 	Summary string                   //总表名,留空不生成总表
 	Parser  func(*xlsx.Sheet) Parser //解析器
@@ -77,6 +78,7 @@ type config struct {
 
 var Config = &config{
 	//Suffix:  "",
+	Proto:   "message.proto",
 	Package: "data",
 	Summary: "data",
 	Tables:  map[string]SheetType{},

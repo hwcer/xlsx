@@ -95,16 +95,16 @@ func preparePath() {
 		if excelStat, err := os.Stat(goOutPath); err != nil || !excelStat.IsDir() {
 			logger.Fatal("GO文件输出目录错误: %v ", goOutPath)
 		}
-		fs, _ := os.ReadDir(goOutPath)
-		logger.Trace("删除GO输出径中的文件")
-		for _, filename := range fs {
-			if strings.HasSuffix(filename.Name(), ".go") {
-				err := os.Remove(filepath.Join(goOutPath, filename.Name()))
-				if err != nil {
-					logger.Fatal(err)
-				}
-			}
-		}
+		//fs, _ := os.ReadDir(goOutPath)
+		//logger.Trace("删除GO输出径中的文件")
+		//for _, filename := range fs {
+		//	if strings.HasSuffix(filename.Name(), ".go") {
+		//		err := os.Remove(filepath.Join(goOutPath, filename.Name()))
+		//		if err != nil {
+		//			logger.Fatal(err)
+		//		}
+		//	}
+		//}
 		cosgo.Config.Set(FlagsNameGo, goOutPath)
 		logger.Trace("GO输出目录:%v", goOutPath)
 	}
