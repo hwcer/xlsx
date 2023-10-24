@@ -19,10 +19,10 @@ type Field struct {
 }
 
 func (this *Field) Type() string {
-	if handle := Require(this.ProtoType); handle != nil {
-		return handle.Type()
-	} else if len(this.Dummy) > 0 {
+	if len(this.Dummy) > 0 {
 		return this.Dummy[0].Name
+	} else if handle := Require(this.ProtoType); handle != nil {
+		return handle.Type()
 	} else {
 		return string(this.ProtoType)
 	}
