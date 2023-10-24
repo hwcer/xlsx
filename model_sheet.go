@@ -38,9 +38,9 @@ type Sheet struct {
 
 //const RowId = "id"
 
-//type rowArr struct {
-//	Coll []any
-//}
+type rowArr struct {
+	Coll []any
+}
 
 // 重新解析obj的字段
 func (this *Sheet) reParseObjField() {
@@ -97,37 +97,13 @@ func (this *Sheet) GetField(name string) *Field {
 }
 
 func (this *Sheet) Values() (any, []error) {
-	if this.SheetType == TableTypeObj {
+	if this.SheetType == TableTypeObject {
 		return this.kv()
+	} else if this.SheetType == TableTypeArray {
+		return this.array()
+	} else {
+		return this.hash()
 	}
-	r := map[string]any{}
-	var errs []error
-	var emptyCell []int
-	maxRow := this.SheetRows.MaxRow
-	for i := this.SheetSkip; i <= maxRow; i++ {
-		row, err := this.SheetRows.Row(i)
-		if err != nil {
-			logger.Trace("%v,err:%v", i, err)
-		}
-
-		id := strings.TrimSpace(row.GetCell(0).Value)
-		if utils.Empty(id) {
-			emptyCell = append(emptyCell, row.GetCoordinate()+1)
-			continue
-		}
-		//MAP ARRAY
-		val, err := this.Value(row)
-		if err != nil {
-			errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
-			continue
-		}
-		r[id] = val
-	}
-
-	if len(emptyCell) > 10 {
-		logger.Trace("%v共%v行ID为空已经忽略:%v", this.ProtoName, len(emptyCell), emptyCell)
-	}
-	return r, errs
 }
 
 // kv 模式
@@ -158,6 +134,73 @@ func (this *Sheet) kv() (any, []error) {
 			} else {
 				errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
 			}
+		}
+	}
+
+	if len(emptyCell) > 10 {
+		logger.Trace("%v共%v行ID为空已经忽略:%v", this.ProtoName, len(emptyCell), emptyCell)
+	}
+	return r, errs
+}
+
+func (this *Sheet) hash() (any, []error) {
+	r := map[string]any{}
+	var errs []error
+	var emptyCell []int
+	maxRow := this.SheetRows.MaxRow
+	for i := this.SheetSkip; i <= maxRow; i++ {
+		row, err := this.SheetRows.Row(i)
+		if err != nil {
+			logger.Trace("%v,err:%v", i, err)
+		}
+
+		id := strings.TrimSpace(row.GetCell(0).Value)
+		if utils.Empty(id) {
+			emptyCell = append(emptyCell, row.GetCoordinate()+1)
+			continue
+		}
+		val, err := this.Value(row)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
+			continue
+		}
+		r[id] = val
+	}
+
+	if len(emptyCell) > 10 {
+		logger.Trace("%v共%v行ID为空已经忽略:%v", this.ProtoName, len(emptyCell), emptyCell)
+	}
+	return r, errs
+}
+
+func (this *Sheet) array() (any, []error) {
+	r := map[string]*rowArr{}
+	var errs []error
+	var emptyCell []int
+	maxRow := this.SheetRows.MaxRow
+	for i := this.SheetSkip; i <= maxRow; i++ {
+		row, err := this.SheetRows.Row(i)
+		if err != nil {
+			logger.Trace("%v,err:%v", i, err)
+		}
+
+		id := strings.TrimSpace(row.GetCell(0).Value)
+		if utils.Empty(id) {
+			emptyCell = append(emptyCell, row.GetCoordinate()+1)
+			continue
+		}
+		//MAP ARRAY
+		val, err := this.Value(row)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
+			continue
+		}
+		if d, ok := r[id]; ok {
+			d.Coll = append(d.Coll, val)
+		} else {
+			d = &rowArr{}
+			d.Coll = append(d.Coll, val)
+			r[id] = d
 		}
 	}
 

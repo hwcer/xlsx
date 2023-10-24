@@ -97,7 +97,7 @@ func parseSheet(v *xlsx.Sheet) (sheet *Sheet) {
 		//}
 	}
 	sheet.Fields = fields
-	if sheet.SheetType == TableTypeObj {
+	if sheet.SheetType == TableTypeObject {
 		sheet.reParseObjField()
 	}
 

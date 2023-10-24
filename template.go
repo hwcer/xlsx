@@ -24,6 +24,11 @@ message <%.ProtoName%>{
 	<%- range .Fields %>
 	<%ProtoRequire .%> <%.Name%> = <%.ProtoIndex%>; //<% .ProtoDesc%><%end%>
 }
+<%- if IsArray .SheetType %>
+message <%.ProtoName%>Array{
+	repeated <%.ProtoName%> Coll = 1;
+}
+<%- end%>
 <%- end%>
 `
 
@@ -39,7 +44,7 @@ message <%.Name%>{
 func init() {
 	tpl = template.New("")
 	tpl.Funcs(template.FuncMap{
-		//"IsArray":      TemplateIsArray,
+		"IsArray":      TemplateIsArray,
 		"SummaryType":  TemplateSummaryType,
 		"ProtoRequire": TemplateProtoRequire,
 		"DummyRequire": TemplateDummyRequire,
@@ -47,9 +52,9 @@ func init() {
 	tpl.Delims("<%", "%>")
 }
 
-//func TemplateIsArray(t SheetType) bool {
-//	return t == TableTypeArr
-//}
+func TemplateIsArray(t SheetType) bool {
+	return t == TableTypeArray
+}
 
 func TemplateProtoRequire(field *Field) string {
 	handle := Require(field.ProtoType)
@@ -75,10 +80,10 @@ func TemplateSummaryType(sheet *Sheet) string {
 	primary := sheet.Fields[0]
 	//var t string
 	switch sheet.SheetType {
-	case TableTypeObj:
+	case TableTypeObject:
 		return sheet.ProtoName
-	//case TableTypeArr:
-	//	t = fmt.Sprintf("%v%vArray", sheet.ProtoName, Config.Suffix)
+	case TableTypeArray:
+		return fmt.Sprintf("map<int32,%vArray>", sheet.ProtoName)
 	default:
 		//t = fmt.Sprintf("%v%v", sheet.ProtoName, Config.Suffix)
 		return fmt.Sprintf("map<%v,%v>", primary.ProtoType, sheet.ProtoName)
