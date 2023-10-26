@@ -64,9 +64,7 @@ func parseSheet(v *xlsx.Sheet) (sheets []*Sheet) {
 		return nil
 	}
 	//格式化ProtoName
-	sheet.ProtoName = strings.TrimSpace(sheet.ProtoName)
-	sheet.ProtoName = strings.TrimPrefix(sheet.ProtoName, "_")
-	sheet.ProtoName = FirstUpper(sheet.ProtoName)
+	sheet.ProtoName = TrimProtoName(sheet.ProtoName)
 	i := strings.Index(sheet.ProtoName, "_")
 	for i > 0 {
 		sheet.ProtoName = sheet.ProtoName[0:i] + FirstUpper(sheet.ProtoName[i+1:])
@@ -101,7 +99,7 @@ func parseSheet(v *xlsx.Sheet) (sheets []*Sheet) {
 		if sheet.Alias != "" {
 			newSheet := *sheet
 			alias := &newSheet
-			alias.ProtoName = sheet.Alias
+			alias.ProtoName = TrimProtoName(sheet.Alias)
 			alias.reParseObjField()
 			sheets = append(sheets, alias)
 			sheet.SheetType = TableTypeMap
@@ -113,4 +111,11 @@ func parseSheet(v *xlsx.Sheet) (sheets []*Sheet) {
 	sheets = append(sheets, sheet)
 	return
 
+}
+
+func TrimProtoName(s string) string {
+	s = strings.TrimSpace(s)
+	s = strings.TrimPrefix(s, "_")
+	s = FirstUpper(s)
+	return s
 }
