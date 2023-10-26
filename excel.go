@@ -21,8 +21,8 @@ func LoadExcel(dir string) {
 			logger.Fatal("excel文件格式错误:%v\n%v", file, err)
 		}
 		for _, sheet := range wb.Sheets {
-			if v := parseSheet(sheet); v != nil {
-				lowerName := strings.ToLower(v.SheetName)
+			for _, v := range parseSheet(sheet) {
+				lowerName := strings.ToLower(v.ProtoName)
 				if i, ok := filter[lowerName]; ok {
 					logger.Alert("表格名字[%v]重复自动跳过\n----FROM:%v\n----TODO:%v", v.ProtoName, i.FileName, file)
 				} else {
@@ -46,18 +46,18 @@ func LoadExcel(dir string) {
 
 }
 
-func parseSheet(v *xlsx.Sheet) (sheet *Sheet) {
+func parseSheet(v *xlsx.Sheet) (sheets []*Sheet) {
 	//countArr := []int{1, 101, 201, 301}
 	maxRow := v.MaxRow
 	logger.Trace("----开始读取表格[%v],共有%v行", v.Name, maxRow)
-	sheet = &Sheet{SheetName: v.Name, SheetRows: v}
+	sheet := &Sheet{SheetName: v.Name, SheetRows: v}
 	sheet.Parser = Config.Parser(v)
 	var ok bool
 	if sheet.SheetSkip, sheet.ProtoName, ok = sheet.Parser.Verify(); !ok {
 		return nil
 	}
 	if i, ok := sheet.Parser.(ParserSheetType); ok {
-		sheet.SheetType = i.SheetType()
+		sheet.SheetType, sheet.Alias = i.SheetType()
 	}
 	if sheet.Fields = sheet.Parser.Fields(); len(sheet.Fields) == 0 {
 		logger.Debug("表[%v]字段为空已经跳过", sheet.SheetName)
@@ -98,9 +98,19 @@ func parseSheet(v *xlsx.Sheet) (sheet *Sheet) {
 	}
 	sheet.Fields = fields
 	if sheet.SheetType == TableTypeObject {
-		sheet.reParseObjField()
-	}
+		if sheet.Alias != "" {
+			newSheet := *sheet
+			alias := &newSheet
+			alias.ProtoName = sheet.Alias
+			alias.reParseObjField()
+			sheets = append(sheets, alias)
+			sheet.SheetType = TableTypeMap
+		} else {
+			sheet.reParseObjField()
+		}
 
+	}
+	sheets = append(sheets, sheet)
 	return
 
 }

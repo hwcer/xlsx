@@ -4,6 +4,7 @@ import (
 	"fmt"
 	cosxls "github.com/hwcer/xlsx"
 	"github.com/tealeg/xlsx/v3"
+	"strings"
 )
 
 func init() {
@@ -75,13 +76,17 @@ func (this *parser) Fields() (r []*cosxls.Field) {
 	return
 }
 
-func (this *parser) SheetType() (r cosxls.SheetType) {
+func (this *parser) SheetType() (r cosxls.SheetType, alias string) {
 	row, err := this.sheet.Row(0)
 	if err != nil {
 		return
 	}
 	if c := row.GetCell(1); c != nil {
 		r = cosxls.Config.GetTableType(c.Value)
+	}
+	name := row.GetCell(0).Value
+	if strings.ToUpper(name) == "EMITTER" {
+		alias = "events"
 	}
 	return
 }
@@ -90,6 +95,9 @@ func (this *parser) SheetType() (r cosxls.SheetType) {
 // key index
 // val index
 // type index type默认为int32
-func (this *parser) StructType() [4]int {
+func (this *parser) StructType(protoName string) [4]int {
+	if name := strings.ToUpper(protoName); name == "EVENTS" {
+		return [4]int{1, 0, 2, 7}
+	}
 	return [4]int{0, 1, 2, 3} //默认值,仅仅演示
 }

@@ -6,39 +6,17 @@ import (
 )
 
 const (
-	FieldTypeArray  cosxls.ProtoBuffType = "Array"
-	FieldTypeObject                      = "Object"
-	FieldTypeArrObj                      = "ArrObj"
+	FieldTypeObject      cosxls.ProtoBuffType = "Object"
+	FieldTypeArrayInt                         = "[]int"
+	FieldTypeArrayString                      = "[]string"
+	FieldTypeArrayObject                      = "[]object"
 )
 
 func init() {
-	cosxls.Register(FieldTypeArray, &Array{})
 	cosxls.Register(FieldTypeObject, &Object{})
-	cosxls.Register(FieldTypeArrObj, &ArrObj{})
-}
-
-type Array struct {
-}
-
-func (this *Array) Type() string {
-	return "int32"
-}
-
-func (this *Array) Value(vs ...string) (any, error) {
-	var r []any
-	parser := cosxls.Require(cosxls.ProtoBuffTypeInt32)
-	for _, i := range vs {
-		if v, e := parser.Value(i); e != nil {
-			return nil, e
-		} else {
-			r = append(r, v)
-		}
-	}
-	return r, nil
-}
-
-func (this *Array) Repeated() bool {
-	return true
+	cosxls.Register(FieldTypeArrayInt, &ArrayInt{})
+	cosxls.Register(FieldTypeArrayString, &ArrayString{})
+	cosxls.Register(FieldTypeArrayObject, &ArrayObject{})
 }
 
 type Object struct {
@@ -55,16 +33,61 @@ func (this *Object) Repeated() bool {
 	return false
 }
 
-type ArrObj struct {
+//-----------------------ArrayInt------------------------------
+
+type ArrayInt struct {
 }
 
-func (this *ArrObj) Type() string {
-	return string(FieldTypeArrObj)
+func (this *ArrayInt) Type() string {
+	return "int32"
 }
 
-func (this *ArrObj) Value(...string) (any, error) {
+func (this *ArrayInt) Value(vs ...string) (any, error) {
+	var r []any
+	parser := cosxls.Require(cosxls.ProtoBuffTypeInt32)
+	for _, i := range vs {
+		if v, e := parser.Value(i); e != nil {
+			return nil, e
+		} else {
+			r = append(r, v)
+		}
+	}
+	return r, nil
+}
+
+func (this *ArrayInt) Repeated() bool {
+	return true
+}
+
+//-----------------------ArrayString------------------------------
+
+type ArrayString struct {
+}
+
+func (this *ArrayString) Type() string {
+	return "string"
+}
+
+func (this *ArrayString) Value(vs ...string) (any, error) {
+	return vs, nil
+}
+
+func (this *ArrayString) Repeated() bool {
+	return true
+}
+
+//-----------------------ArrayObject------------------------------
+
+type ArrayObject struct {
+}
+
+func (this *ArrayObject) Type() string {
+	return string(FieldTypeArrayObject)
+}
+
+func (this *ArrayObject) Value(...string) (any, error) {
 	return nil, fmt.Errorf("对象无法直接获取值")
 }
-func (this *ArrObj) Repeated() bool {
+func (this *ArrayObject) Repeated() bool {
 	return true
 }

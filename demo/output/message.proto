@@ -1,13 +1,13 @@
 syntax = "proto3";
-option go_package = "./;data";
+option go_package = "./;config";
 
 //全局对象......
-message Object{ 
+message IdInt32NumInt32PerInt32{ 
 	int32 id = 1;
 	int32 num = 2;
 	int32 per = 3;
 }
-message ArrObj{ 
+message IdInt32NumInt32{ 
 	int32 id = 1;
 	int32 num = 2;
 }
@@ -18,8 +18,8 @@ message Activity{
 	int32 id = 1; //活动
 	string TType = 2; //时间格式
 	repeated int32 Arr = 3; //
-	Object Obj = 4; //
-	repeated ArrObj ArrObj = 5; //id
+	IdInt32NumInt32PerInt32 Obj = 4; //
+	repeated IdInt32NumInt32 ArrObj = 5; //id
 }
 message Base{
 	int32 lv = 1; //等级
@@ -27,7 +27,7 @@ message Base{
 	string name = 3; //名称
 }
 
-message data{
+message static{
 	map<int32,Activity> Activity=1;
 	Base Base=2;
 }

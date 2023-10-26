@@ -25,6 +25,8 @@ func (this *GlobalDummy) Search(d *Dummy) (r string, ok bool) {
 }
 
 type Sheet struct {
+	Alias      string      //KV 模式下的别名,如果没有别名,会原地转换成KV模式
+	Parser     Parser      //解析器
 	Fields     []*Field    //字段列表
 	FileName   string      //文件名
 	SheetName  string      //表格名称
@@ -33,7 +35,6 @@ type Sheet struct {
 	SheetType  SheetType   //输出类型,kv arr map
 	ProtoName  string      // protoName 是pb.go中文件的名字，
 	ProtoIndex int         //总表编号
-	Parser     Parser
 }
 
 //const RowId = "id"
@@ -49,7 +50,7 @@ func (this *Sheet) reParseObjField() {
 	var fields []*Field
 	indexes := [4]int{0, 1, 2, 3}
 	if p, ok := this.Parser.(ParserStructType); ok {
-		indexes = p.StructType()
+		indexes = p.StructType(this.ProtoName)
 	}
 
 	for i := this.SheetSkip; i <= maxRow; i++ {
@@ -114,7 +115,7 @@ func (this *Sheet) kv() (any, []error) {
 	maxRow := this.SheetRows.MaxRow
 	indexes := [4]int{0, 1, 2, 3}
 	if p, ok := this.Parser.(ParserStructType); ok {
-		indexes = p.StructType()
+		indexes = p.StructType(this.ProtoName)
 	}
 	for i := this.SheetSkip; i <= maxRow; i++ {
 		row, err := this.SheetRows.Row(i)

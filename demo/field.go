@@ -48,7 +48,7 @@ func (this *Field) compile() bool {
 	if this.Name == "" {
 		return false
 	}
-	if !(this.ProtoType == FieldTypeObject || this.ProtoType == FieldTypeArrObj) {
+	if !(this.ProtoType == FieldTypeObject || this.ProtoType == FieldTypeArrayObject) {
 		return len(this.flags) == 0
 	}
 	if len(this.Dummy) == 0 {
@@ -84,7 +84,7 @@ func (this *Field) ending(cell *xlsx.Cell, index int, suffix string, protoType c
 			flag = append(flag, v)
 		}
 	}
-	if !(this.ProtoType == FieldTypeObject || this.ProtoType == FieldTypeArrObj) {
+	if !(this.ProtoType == FieldTypeObject || this.ProtoType == FieldTypeArrayObject) {
 		return this.isEnd()
 	}
 	if len(k) == 0 {
@@ -131,13 +131,18 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, cell *xlsx.Cell, index 
 		suffix = value[i+2:]
 		this.flags = append(this.flags, "]", "}")
 		this.Dummy = append(this.Dummy, cosxls.NewDummy())
-		protoType = FieldTypeArrObj
+		protoType = FieldTypeArrayObject
 	} else if i = strings.Index(value, "["); i >= 0 {
 		//begin = true
 		name = value[0:i]
 		//suffix = value[i:]
 		this.flags = append(this.flags, "]")
-		protoType = FieldTypeArray
+		if fieldType == cosxls.ProtoBuffTypeString {
+			protoType = FieldTypeArrayString
+		} else if fieldType == cosxls.ProtoBuffTypeInt32 {
+			protoType = FieldTypeArrayInt
+		}
+
 	} else if i = strings.Index(value, "{"); i >= 0 {
 		//begin = true
 		name = value[0:i]
@@ -156,7 +161,7 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, cell *xlsx.Cell, index 
 		this.Name = name
 		this.ProtoType = protoType
 	}
-	if this.ProtoType != FieldTypeArrObj && this.ProtoType != FieldTypeArray && this.ProtoType != FieldTypeObject {
+	if this.ProtoType != FieldTypeArrayObject && this.ProtoType != FieldTypeArrayInt && this.ProtoType != FieldTypeArrayString && this.ProtoType != FieldTypeObject {
 		return true
 	}
 	return this.ending(cell, index, suffix, fieldType)

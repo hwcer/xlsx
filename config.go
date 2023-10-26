@@ -23,11 +23,11 @@ type Parser interface {
 	Fields() []*Field                         //表格字段
 }
 type ParserSheetType interface {
-	SheetType() SheetType
+	SheetType() (SheetType, string)
 }
 
 type ParserStructType interface {
-	StructType() [4]int
+	StructType(protoName string) [4]int
 }
 type config struct {
 	Proto   string                   //proto 文件名

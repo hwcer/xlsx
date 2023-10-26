@@ -58,6 +58,9 @@ func TemplateIsArray(t SheetType) bool {
 
 func TemplateProtoRequire(field *Field) string {
 	handle := Require(field.ProtoType)
+	if handle == nil {
+		return string(field.ProtoType)
+	}
 	protoType := field.Type()
 	if handle.Repeated() {
 		return fmt.Sprintf("%v %v", "repeated", protoType)
