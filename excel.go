@@ -16,7 +16,7 @@ func LoadExcel(dir string) {
 	for _, file := range files {
 		//wb, err := spreadsheet.Open(file)
 		wb, err := xlsx.OpenFile(file)
-		logger.Trace("解析文件:%v", file)
+		//logger.Trace("解析文件:%v", file)
 		if err != nil {
 			logger.Fatal("excel文件格式错误:%v\n%v", file, err)
 		}
@@ -35,21 +35,25 @@ func LoadExcel(dir string) {
 			}
 		}
 	}
-	writeExcelIndex(sheets)
-	writeProtoMessage(sheets)
+	if cosgo.Config.GetString(FlagsNameOut) != "" {
+		writeExcelIndex(sheets)
+		writeProtoMessage(sheets)
+	}
 	if cosgo.Config.GetString(FlagsNameJson) != "" {
 		writeValueJson(sheets)
 	}
 	if cosgo.Config.GetString(FlagsNameGo) != "" {
 		ProtoGo()
 	}
-
+	if p := cosgo.Config.GetString(FlagsNameLanguage); p != "" {
+		writeLanguage(sheets)
+	}
 }
 
 func parseSheet(v *xlsx.Sheet) (sheets []*Sheet) {
 	//countArr := []int{1, 101, 201, 301}
-	maxRow := v.MaxRow
-	logger.Trace("----开始读取表格[%v],共有%v行", v.Name, maxRow)
+	//maxRow := v.MaxRow
+	//logger.Trace("----开始读取表格[%v],共有%v行", v.Name, maxRow)
 	sheet := &Sheet{SheetName: v.Name, SheetRows: v}
 	sheet.Parser = Config.Parser(v)
 	var ok bool
@@ -60,7 +64,7 @@ func parseSheet(v *xlsx.Sheet) (sheets []*Sheet) {
 		sheet.SheetType, sheet.Alias = i.SheetType()
 	}
 	if sheet.Fields = sheet.Parser.Fields(); len(sheet.Fields) == 0 {
-		logger.Debug("表[%v]字段为空已经跳过", sheet.SheetName)
+		//logger.Debug("表[%v]字段为空已经跳过", sheet.SheetName)
 		return nil
 	}
 	//格式化ProtoName

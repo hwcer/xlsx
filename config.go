@@ -30,19 +30,23 @@ type ParserStructType interface {
 	StructType(protoName string) [4]int
 }
 type config struct {
-	Proto   string                   //proto 文件名
-	Package string                   //包名
-	Summary string                   //总表名,留空不生成总表
-	Parser  func(*xlsx.Sheet) Parser //解析器
-	Tables  map[string]SheetType     //表结构
-	Message func() string            //可以加人proto全局对象
+	Proto                string                   //proto 文件名
+	Package              string                   //包名
+	Summary              string                   //总表名,留空不生成总表
+	Parser               func(*xlsx.Sheet) Parser //解析器
+	Tables               map[string]SheetType     //表结构
+	Message              func() string            //可以加人proto全局对象
+	Language             []string                 //多语言文本包含的类型
+	LanguageNewSheetName string                   //多语言增量页签名
 }
 
 var Config = &config{
-	Proto:   "message.proto",
-	Package: "data",
-	Summary: "data",
-	Tables:  map[string]SheetType{},
+	Proto:                "message.proto",
+	Package:              "data",
+	Summary:              "data",
+	Tables:               map[string]SheetType{},
+	Language:             []string{"text", "lang", "language"},
+	LanguageNewSheetName: "新增文本",
 }
 
 func (this *config) SetTableType(t SheetType, names ...string) {

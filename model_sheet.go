@@ -224,6 +224,32 @@ func (this *Sheet) Value(row *xlsx.Row) (map[string]any, error) {
 	return r, nil
 }
 
+// Language 找出所有多语言文本
+func (this *Sheet) Language(r map[string]string, types map[string]bool) {
+	var fields []*Field
+	for _, v := range this.Fields {
+		if h := Require(v.ProtoType); !h.Repeated() && len(v.Dummy) == 0 && len(v.Index) == 1 && types[v.FieldType] {
+			fields = append(fields, v)
+		}
+	}
+	maxRow := this.SheetRows.MaxRow
+	for i := this.SheetSkip; i <= maxRow; i++ {
+		row, err := this.SheetRows.Row(i)
+		if err != nil {
+			logger.Trace("%v,err:%v", i, err)
+		}
+		id := strings.TrimSpace(row.GetCell(0).Value)
+		if !utils.Empty(id) {
+			for _, f := range fields {
+				if c := row.GetCell(f.Index[0]); c != nil {
+					k := fmt.Sprintf("%v_%v_%v", this.ProtoName, id, f.Name)
+					r[k] = c.Value
+				}
+			}
+		}
+	}
+}
+
 // GlobalObjectsProtoName 通过ProtoName生成子对象
 func (this *Sheet) GlobalObjectsProtoName() {
 	for _, field := range this.Fields {

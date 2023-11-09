@@ -71,24 +71,25 @@ func preparePath() {
 	logger.Trace("输入目录:%v", in)
 
 	logger.Trace("====================开始检查输出路径====================")
-	out := filepath.Join(root, cosgo.Config.GetString(FlagsNameOut))
-	if excelStat, err := os.Stat(out); err != nil || !excelStat.IsDir() {
-		logger.Fatal("静态数据目录错误: %v ", out)
-	}
-	files, _ := os.ReadDir(out)
-	logger.Trace("删除输出路径中的文件")
-	for _, filename := range files {
-		if strings.HasSuffix(filename.Name(), ".proto") ||
-			strings.HasSuffix(filename.Name(), ".txt") {
-			err := os.Remove(filepath.Join(out, filename.Name()))
-			if err != nil {
-				logger.Fatal(err)
+	if p := cosgo.Config.GetString(FlagsNameOut); p != "" {
+		out := filepath.Join(root, p)
+		if excelStat, err := os.Stat(out); err != nil || !excelStat.IsDir() {
+			logger.Fatal("静态数据目录错误: %v ", out)
+		}
+		files, _ := os.ReadDir(out)
+		logger.Trace("删除输出路径中的文件")
+		for _, filename := range files {
+			if strings.HasSuffix(filename.Name(), ".proto") ||
+				strings.HasSuffix(filename.Name(), ".txt") {
+				err := os.Remove(filepath.Join(out, filename.Name()))
+				if err != nil {
+					logger.Fatal(err)
+				}
 			}
 		}
+		cosgo.Config.Set(FlagsNameOut, out)
+		logger.Trace("输出目录:%v", out)
 	}
-	cosgo.Config.Set(FlagsNameOut, out)
-	logger.Trace("输出目录:%v", out)
-
 	logger.Trace("====================开始检查GO输出路径====================")
 	if p := cosgo.Config.GetString(FlagsNameGo); p != "" {
 		goOutPath := filepath.Join(root, p)
@@ -140,60 +141,18 @@ func preparePath() {
 
 		}
 	}
-
-}
-
-/*
-func FormatType(t string) string {
-	switch t {
-	case "int", "int32":
-		return "int32"
-	case "int64":
-		return "int64"
-	case "float", "float32":
-		return "float"
-	case "float64", "double":
-		return "double"
-	case "str", "string", "text":
-		return "string"
+	logger.Trace("====================开始检查多语言文件====================")
+	if s := cosgo.Config.GetString(FlagsNameLanguage); s != "" {
+		languagePath := filepath.Join(root, s)
+		if excelStat, err := os.Stat(languagePath); err != nil {
+			logger.Fatal("语言文件错误: %v ", err)
+		} else if excelStat.IsDir() {
+			logger.Fatal("语言文件不能是一个目录: %v ", s)
+		} else if ext := filepath.Ext(languagePath); ext != ".xlsx" && ext != ".xls" {
+			logger.Fatal("语言文件必须是Excel(xlsx,xls) ")
+		}
+		cosgo.Config.Set(FlagsNameLanguage, languagePath)
+	} else {
+		logger.Trace("未设置语言文件,已经跳过")
 	}
-	return t
 }
-
-func FormatValue(row *xlsx.Row, i int, t string) (r any, err error) {
-	var v string
-	if c := row.GetCell(i); c != nil {
-		v = strings.TrimSpace(c.Value)
-	}
-	switch t {
-	case "int", "int32":
-		if v == "" {
-			return int32(0), nil
-		}
-		var n int
-		if n, err = strconv.Atoi(v); err == nil {
-			r = int32(n)
-		}
-	case "int64":
-		if v == "" {
-			return int64(0), nil
-		}
-		r, err = strconv.ParseInt(v, 10, 64)
-	case "float":
-		if v == "" {
-			return float32(0), nil
-		}
-		var f float64
-		f, err = strconv.ParseFloat(v, 10)
-		r = float32(f)
-	case "double":
-		if v == "" {
-			return float32(0), nil
-		}
-		r, err = strconv.ParseFloat(v, 10)
-	case "str", "string", "text":
-		r = v
-	}
-	return
-}
-*/

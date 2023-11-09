@@ -64,10 +64,16 @@ func ProtoBuffTypeFormat(t string) ProtoBuffType {
 		return "float"
 	case "float64", "double":
 		return "double"
-	case "str", "string", "text":
+	case "str", "string", "text", "lang", "language":
 		return "string"
 	}
-	return ProtoBuffType(strings.ToLower(t))
+	//判断语言文件中有没有
+	for _, k := range Config.Language {
+		if k == t {
+			return "string"
+		}
+	}
+	return ProtoBuffType(t)
 }
 
 func (this *protoBuffTypeParseDefault) Type() string {

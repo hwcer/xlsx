@@ -9,11 +9,11 @@ import (
 //
 // Field.ProtoType 除proto基础数据类型外还可以自定义类型  array, arrInt,arrObj...
 type Field struct {
-	Name      string   //字段名字
-	Index     []int    //字段关联的CELL索引
-	Dummy     []*Dummy //子对象
-	ProtoDesc string   //备注信息
-	//SheetType  string        //表格中定义的原始字段类型
+	Name       string        //字段名字
+	Index      []int         //字段关联的CELL索引
+	Dummy      []*Dummy      //子对象
+	ProtoDesc  string        //备注信息
+	FieldType  string        //表格中定义的原始字段类型
 	ProtoType  ProtoBuffType //PROTO字段类型,和SheetType有一定的关联性
 	ProtoIndex int           //proto index 自动生产
 }
