@@ -53,7 +53,7 @@ func init() {
 }
 
 func TemplateIsArray(t SheetType) bool {
-	return t == TableTypeArray
+	return t == SheetTypeArray
 }
 
 func TemplateProtoRequire(field *Field) string {
@@ -83,9 +83,9 @@ func TemplateSummaryType(sheet *Sheet) string {
 	primary := sheet.Fields[0]
 	//var t string
 	switch sheet.SheetType {
-	case TableTypeObject:
+	case SheetTypeStruct:
 		return sheet.ProtoName
-	case TableTypeArray:
+	case SheetTypeArray:
 		return fmt.Sprintf("map<int32,%vArray>", sheet.ProtoName)
 	default:
 		//t = fmt.Sprintf("%v%v", sheet.ProtoName, Config.Suffix)

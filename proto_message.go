@@ -38,7 +38,7 @@ func writeExcelIndex(sheets []*Sheet) {
 	in := cosgo.Config.GetString(FlagsNameIn) + "/"
 	for _, s := range sheets {
 		b.WriteString(repeat(s.ProtoName, 30))
-		b.WriteString(repeat(s.SheetName, 40))
+		b.WriteString(repeat(s.Name, 40))
 		b.WriteString(fmt.Sprintf("%v\n", strings.TrimPrefix(s.FileName, in)))
 	}
 	f := filepath.Join(cosgo.Config.GetString(FlagsNameOut), "配置索引.txt")

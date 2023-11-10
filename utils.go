@@ -9,6 +9,18 @@ import (
 	"strings"
 )
 
+func TrimProtoName(s string) string {
+	s = strings.TrimSpace(s)
+	s = strings.TrimPrefix(s, "_")
+	s = FirstUpper(s)
+	i := strings.Index(s, "_")
+	for i > 0 {
+		s = s[0:i] + FirstUpper(s[i+1:])
+		i = strings.Index(s, "_")
+	}
+	return s
+}
+
 func Ignore(f string) bool {
 	_, name := filepath.Split(f)
 	if strings.HasPrefix(name, "~") {

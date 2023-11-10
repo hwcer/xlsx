@@ -47,7 +47,7 @@ func (this *Dummy) Add(name string, protoType ProtoBuffType, sheetIndex int) err
 	}
 	field.label = fmt.Sprintf("%v%v", FirstUpper(field.Name), FirstUpper(string(protoType)))
 	this.Fields = append(this.Fields, field)
-	//this.Sheets = append(this.Sheets, sheetIndex)
+	//this.Sheets = append(this.Sheets, SheetIndex)
 	return nil
 }
 

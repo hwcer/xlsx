@@ -25,16 +25,15 @@ func (this *GlobalDummy) Search(d *Dummy) (r string, ok bool) {
 }
 
 type Sheet struct {
-	Alias      string      //KV 模式下的别名,如果没有别名,会原地转换成KV模式
-	Parser     Parser      //解析器
-	Fields     []*Field    //字段列表
-	FileName   string      //文件名
-	SheetName  string      //表格名称
-	SheetRows  *xlsx.Sheet //sheets
-	SheetSkip  int         //数据表中数据部分需要跳过的行数
-	SheetType  SheetType   //输出类型,kv arr map
-	ProtoName  string      // protoName 是pb.go中文件的名字，
-	ProtoIndex int         //总表编号
+	*xlsx.Sheet
+	Skip       int       //数据表中数据部分需要跳过的行数
+	Parser     Parser    //解析器
+	Fields     []*Field  //字段列表
+	FileName   string    //文件名
+	ProtoName  string    // protoName 是pb.go中文件的名字，
+	ProtoIndex int       //总表编号
+	SheetType  SheetType //输出类型,kv arr map
+	SheetIndex [4]int    //kv 模式下的字段
 }
 
 //const RowId = "id"
@@ -45,16 +44,15 @@ type rowArr struct {
 
 // 重新解析obj的字段
 func (this *Sheet) reParseObjField() {
-	maxRow := this.SheetRows.MaxRow
+	maxRow := this.MaxRow
 	var index int
 	var fields []*Field
-	indexes := [4]int{0, 1, 2, 3}
-	if p, ok := this.Parser.(ParserStructType); ok {
-		indexes = p.StructType(this.ProtoName)
-	}
-
-	for i := this.SheetSkip; i <= maxRow; i++ {
-		row, err := this.SheetRows.Row(i)
+	indexes := this.SheetIndex
+	//if p, ok := this.Parser.(ParserStructType); ok {
+	//	indexes = p.StructType(this.ProtoName)
+	//}
+	for i := this.Skip; i <= maxRow; i++ {
+		row, err := this.Sheet.Row(i)
 		if err != nil {
 			logger.Trace("%v,err:%v", i, err)
 		}
@@ -80,8 +78,10 @@ func (this *Sheet) reParseObjField() {
 		if field.ProtoType == "" {
 			field.ProtoType = ProtoBuffTypeFormat("int")
 		}
-		if v := strings.TrimSpace(row.GetCell(indexes[3]).Value); v != "" {
-			field.ProtoDesc = v
+		if indexes[3] >= 0 {
+			if v := strings.TrimSpace(row.GetCell(indexes[3]).Value); v != "" {
+				field.ProtoDesc = v
+			}
 		}
 		fields = append(fields, field)
 	}
@@ -98,9 +98,9 @@ func (this *Sheet) GetField(name string) *Field {
 }
 
 func (this *Sheet) Values() (any, []error) {
-	if this.SheetType == TableTypeObject {
+	if this.SheetType == SheetTypeStruct {
 		return this.kv()
-	} else if this.SheetType == TableTypeArray {
+	} else if this.SheetType == SheetTypeArray {
 		return this.array()
 	} else {
 		return this.hash()
@@ -112,13 +112,13 @@ func (this *Sheet) kv() (any, []error) {
 	r := map[string]any{}
 	var errs []error
 	var emptyCell []int
-	maxRow := this.SheetRows.MaxRow
-	indexes := [4]int{0, 1, 2, 3}
-	if p, ok := this.Parser.(ParserStructType); ok {
-		indexes = p.StructType(this.ProtoName)
-	}
-	for i := this.SheetSkip; i <= maxRow; i++ {
-		row, err := this.SheetRows.Row(i)
+	maxRow := this.Sheet.MaxRow
+	indexes := this.SheetIndex
+	//if p, ok := this.Parser.(ParserStructType); ok {
+	//	indexes = p.StructType(this.ProtoName)
+	//}
+	for i := this.Skip; i <= maxRow; i++ {
+		row, err := this.Sheet.Row(i)
 		if err != nil {
 			logger.Trace("%v,err:%v", i, err)
 		}
@@ -148,9 +148,9 @@ func (this *Sheet) hash() (any, []error) {
 	r := map[string]any{}
 	var errs []error
 	var emptyCell []int
-	maxRow := this.SheetRows.MaxRow
-	for i := this.SheetSkip; i <= maxRow; i++ {
-		row, err := this.SheetRows.Row(i)
+	maxRow := this.Sheet.MaxRow
+	for i := this.Skip; i <= maxRow; i++ {
+		row, err := this.Sheet.Row(i)
 		if err != nil {
 			logger.Trace("%v,err:%v", i, err)
 		}
@@ -178,9 +178,9 @@ func (this *Sheet) array() (any, []error) {
 	r := map[string]*rowArr{}
 	var errs []error
 	var emptyCell []int
-	maxRow := this.SheetRows.MaxRow
-	for i := this.SheetSkip; i <= maxRow; i++ {
-		row, err := this.SheetRows.Row(i)
+	maxRow := this.Sheet.MaxRow
+	for i := this.Skip; i <= maxRow; i++ {
+		row, err := this.Sheet.Row(i)
 		if err != nil {
 			logger.Trace("%v,err:%v", i, err)
 		}
@@ -232,9 +232,9 @@ func (this *Sheet) Language(r map[string]string, types map[string]bool) {
 			fields = append(fields, v)
 		}
 	}
-	maxRow := this.SheetRows.MaxRow
-	for i := this.SheetSkip; i <= maxRow; i++ {
-		row, err := this.SheetRows.Row(i)
+	maxRow := this.Sheet.MaxRow
+	for i := this.Skip; i <= maxRow; i++ {
+		row, err := this.Sheet.Row(i)
 		if err != nil {
 			logger.Trace("%v,err:%v", i, err)
 		}
