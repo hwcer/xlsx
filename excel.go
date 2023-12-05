@@ -101,18 +101,27 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 	}
 	sheets[sheet.ProtoName] = sheet
 	//格外的Struct
-	var ps ParserNewStruct
-	if ps, ok = sheet.Parser.(ParserNewStruct); ok {
-		if attach := ps.NewStruct(); len(attach) > 0 {
-			for name, sheetIndex := range attach {
-				newSheet := *sheet
-				newSheet.ProtoName = TrimProtoName(name)
-				newSheet.SheetType = SheetTypeStruct
-				newSheet.SheetIndex = sheetIndex
-				newSheet.reParseObjField()
-				sheets[newSheet.ProtoName] = &newSheet
-			}
-		}
+	if ev := Config.enums[sheet.ProtoName]; ev != nil {
+		newSheet := *sheet
+		newSheet.ProtoName = ev.Name
+		newSheet.SheetType = SheetTypeStruct
+		newSheet.SheetIndex = ev.Index
+		newSheet.reParseObjField()
+		sheets[newSheet.ProtoName] = &newSheet
 	}
+
+	//var ps ParserNewStruct
+	//if ps, ok = sheet.Parser.(ParserNewStruct); ok {
+	//	if attach := ps.NewStruct(); len(attach) > 0 {
+	//		for name, sheetIndex := range attach {
+	//			newSheet := *sheet
+	//			newSheet.ProtoName = TrimProtoName(name)
+	//			newSheet.SheetType = SheetTypeStruct
+	//			newSheet.SheetIndex = sheetIndex
+	//			newSheet.reParseObjField()
+	//			sheets[newSheet.ProtoName] = &newSheet
+	//		}
+	//	}
+	//}
 	return
 }

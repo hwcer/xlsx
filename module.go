@@ -41,6 +41,21 @@ type module struct {
 
 func (this *module) Start() error {
 	logger.Console.Disabled = false
+	var enums = map[string]*enum{}
+	if err := cosgo.Config.UnmarshalKey("enum", &enums); err != nil {
+		return err
+	}
+	Config.enums = map[string]*enum{}
+	for k, v := range enums {
+		pk := TrimProtoName(k)
+		if v.Name == "" {
+			v.Name = pk
+		} else {
+			v.Name = TrimProtoName(v.Name)
+		}
+		Config.enums[pk] = v
+	}
+
 	preparePath()
 	LoadExcel(cosgo.Config.GetString(FlagsNameIn))
 	logger.Trace("\n========================恭喜大表哥导表成功========================\n")

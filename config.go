@@ -38,7 +38,13 @@ type ParserNewStruct interface {
 //	StructIndex() [4]int
 //}
 
+type enum struct {
+	Name  string `json:"name"`
+	Index [4]int `json:"index"`
+}
+
 type config struct {
+	enums                map[string]*enum
 	Types                map[string]SheetType //表结构
 	Proto                string               //proto 文件名
 	Package              string               //包名
@@ -50,6 +56,7 @@ type config struct {
 }
 
 var Config = &config{
+	enums:                map[string]*enum{},
 	Types:                map[string]SheetType{},
 	Proto:                "message.proto",
 	Package:              "data",
@@ -72,5 +79,5 @@ func (this *config) GetType(name string) SheetType {
 func init() {
 	Config.SetType(SheetTypeHash, "map")
 	Config.SetType(SheetTypeArray, "arr", "array", "slice")
-	Config.SetType(SheetTypeStruct, "kv", "kvs", "obj", "object")
+	Config.SetType(SheetTypeStruct, "kv", "kvs", "obj", "object", "struct")
 }
