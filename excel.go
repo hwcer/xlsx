@@ -109,19 +109,5 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 		newSheet.reParseObjField()
 		sheets[newSheet.ProtoName] = &newSheet
 	}
-
-	//var ps ParserNewStruct
-	//if ps, ok = sheet.Parser.(ParserNewStruct); ok {
-	//	if attach := ps.NewStruct(); len(attach) > 0 {
-	//		for name, sheetIndex := range attach {
-	//			newSheet := *sheet
-	//			newSheet.ProtoName = TrimProtoName(name)
-	//			newSheet.SheetType = SheetTypeStruct
-	//			newSheet.SheetIndex = sheetIndex
-	//			newSheet.reParseObjField()
-	//			sheets[newSheet.ProtoName] = &newSheet
-	//		}
-	//	}
-	//}
 	return
 }

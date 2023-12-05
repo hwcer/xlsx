@@ -30,9 +30,9 @@ type ParserSheetType interface {
 // name 如果与原始Sheet重名,将覆盖
 // index 索引:  key,val,type,desc
 // type,desc 为-1时将省力,类型一律为int32
-type ParserNewStruct interface {
-	NewStruct() map[string][4]int
-}
+//type ParserNewStruct interface {
+//	NewStruct() map[string][4]int
+//}
 
 //type ParserStructIndex interface {
 //	StructIndex() [4]int
