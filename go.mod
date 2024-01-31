@@ -2,9 +2,11 @@ module github.com/hwcer/xlsx
 
 go 1.18
 
+replace github.com/hwcer/cosgo v0.0.0 => ../cosgo
+
 require (
-	github.com/hwcer/cosgo v0.0.3
-	github.com/hwcer/logger v0.0.3
+	github.com/hwcer/cosgo v0.0.0
+	github.com/hwcer/logger v0.0.5
 	github.com/tealeg/xlsx/v3 v3.2.4
 	google.golang.org/protobuf v1.30.0
 )
