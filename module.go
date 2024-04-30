@@ -14,11 +14,11 @@ const (
 	FlagsNameLanguage string = "language" //多语言文件
 )
 
-var mod *module
+var mod *Module
 
 func init() {
 	logger.SetCallDepth(0)
-	logger.Console.Disabled = true
+	logger.DelOutput(logger.DefaultConsoleName)
 	cosgo.Config.Flags(FlagsNameIn, "", "", "需要解析的excel目录")
 	cosgo.Config.Flags(FlagsNameOut, "", "", "输出文件目录")
 	cosgo.Config.Flags(FlagsNameGo, "", "", "生成的GO文件")
@@ -27,20 +27,20 @@ func init() {
 	cosgo.Config.Flags(FlagsNameLanguage, "", "", "生产的多语言EXCEL文件,默认不生成")
 }
 
-func New() *module {
+func New() *Module {
 	if mod == nil {
-		mod = &module{}
+		mod = &Module{}
 		mod.Id = "xlsx"
 	}
 	return mod
 }
 
-type module struct {
+type Module struct {
 	cosgo.Module
 }
 
-func (this *module) Start() error {
-	logger.Console.Disabled = false
+func (this *Module) Start() error {
+	_ = logger.SetOutput(logger.DefaultConsoleName, logger.Console)
 	var enums = map[string]*enum{}
 	if err := cosgo.Config.UnmarshalKey("enum", &enums); err != nil {
 		return err
@@ -59,6 +59,6 @@ func (this *module) Start() error {
 	preparePath()
 	LoadExcel(cosgo.Config.GetString(FlagsNameIn))
 	logger.Trace("\n========================恭喜大表哥导表成功========================\n")
-	logger.Console.Disabled = true
+	logger.DelOutput(logger.DefaultConsoleName)
 	return nil
 }
