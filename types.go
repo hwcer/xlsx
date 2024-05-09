@@ -28,15 +28,15 @@ const (
 )
 
 func init() {
-	Register(ProtoBuffTypeInt32, &protoBuffTypeParseDefault{pt: ProtoBuffTypeInt32})
-	Register(ProtoBuffTypeInt64, &protoBuffTypeParseDefault{pt: ProtoBuffTypeInt64})
-	Register(ProtoBuffTypeUint32, &protoBuffTypeParseDefault{pt: ProtoBuffTypeUint32})
-	Register(ProtoBuffTypeUint64, &protoBuffTypeParseDefault{pt: ProtoBuffTypeUint64})
-	Register(ProtoBuffTypeFloat, &protoBuffTypeParseDefault{pt: ProtoBuffTypeFloat})
-	Register(ProtoBuffTypeDouble, &protoBuffTypeParseDefault{pt: ProtoBuffTypeDouble})
-	Register(ProtoBuffTypeBool, &protoBuffTypeParseDefault{pt: ProtoBuffTypeBool})
-	Register(ProtoBuffTypeByte, &protoBuffTypeParseDefault{pt: ProtoBuffTypeByte})
-	Register(ProtoBuffTypeString, &protoBuffTypeParseDefault{pt: ProtoBuffTypeString})
+	Register(ProtoBuffTypeInt32, &ProtoBuffParseDefault{pt: ProtoBuffTypeInt32})
+	Register(ProtoBuffTypeInt64, &ProtoBuffParseDefault{pt: ProtoBuffTypeInt64})
+	Register(ProtoBuffTypeUint32, &ProtoBuffParseDefault{pt: ProtoBuffTypeUint32})
+	Register(ProtoBuffTypeUint64, &ProtoBuffParseDefault{pt: ProtoBuffTypeUint64})
+	Register(ProtoBuffTypeFloat, &ProtoBuffParseDefault{pt: ProtoBuffTypeFloat})
+	Register(ProtoBuffTypeDouble, &ProtoBuffParseDefault{pt: ProtoBuffTypeDouble})
+	Register(ProtoBuffTypeBool, &ProtoBuffParseDefault{pt: ProtoBuffTypeBool})
+	Register(ProtoBuffTypeByte, &ProtoBuffParseDefault{pt: ProtoBuffTypeByte})
+	Register(ProtoBuffTypeString, &ProtoBuffParseDefault{pt: ProtoBuffTypeString})
 }
 
 func Register(t ProtoBuffType, handle ProtoBuffParse) {
@@ -49,14 +49,10 @@ func Require(t ProtoBuffType) ProtoBuffParse {
 	return protoBuffTypeParse[t]
 }
 
-type protoBuffTypeParseDefault struct {
-	pt ProtoBuffType
-}
-
 func ProtoBuffTypeFormat(t string) ProtoBuffType {
 	t = strings.TrimSpace(t)
 	switch t {
-	case "int", "int32":
+	case "int", "int32", "num", "number":
 		return "int32"
 	case "int64":
 		return "int64"
@@ -76,11 +72,19 @@ func ProtoBuffTypeFormat(t string) ProtoBuffType {
 	return ProtoBuffType(t)
 }
 
-func (this *protoBuffTypeParseDefault) Type() string {
+func NewProtoBuffParse(t ProtoBuffType) *ProtoBuffParseDefault {
+	return &ProtoBuffParseDefault{pt: t}
+}
+
+type ProtoBuffParseDefault struct {
+	pt ProtoBuffType
+}
+
+func (this *ProtoBuffParseDefault) Type() string {
 	return string(this.pt)
 }
 
-func (this *protoBuffTypeParseDefault) Value(vs ...string) (r any, err error) {
+func (this *ProtoBuffParseDefault) Value(vs ...string) (r any, err error) {
 	v := vs[0]
 	switch this.pt {
 	case ProtoBuffTypeInt32, ProtoBuffTypeInt64:
@@ -117,11 +121,11 @@ func (this *protoBuffTypeParseDefault) Value(vs ...string) (r any, err error) {
 	return
 }
 
-func (*protoBuffTypeParseDefault) Repeated() bool {
+func (*ProtoBuffParseDefault) Repeated() bool {
 	return false
 }
 
-func (*protoBuffTypeParseDefault) trimInt(s string) string {
+func (*ProtoBuffParseDefault) trimInt(s string) string {
 	if i := strings.Index(s, "."); i > 0 {
 		s = s[0:i]
 	}

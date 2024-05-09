@@ -169,7 +169,7 @@ func (this *Sheet) hash() (any, []error) {
 	}
 
 	if len(emptyCell) > 10 {
-		logger.Trace("%v共%v行ID为空已经忽略:%v", this.ProtoName, len(emptyCell), emptyCell)
+		//logger.Trace("%v共%v行ID为空已经忽略:%v", this.ProtoName, len(emptyCell), emptyCell)
 	}
 	return r, errs
 }
