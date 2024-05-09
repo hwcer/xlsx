@@ -75,7 +75,10 @@ func preparePath() {
 	// excel文件必须存在
 	logger.Trace("====================开始检查EXCEL路径====================")
 	root := cosgo.Dir()
-	in := filepath.Join(root, cosgo.Config.GetString(FlagsNameIn))
+	in := cosgo.Config.GetString(FlagsNameIn)
+	if !filepath.IsAbs(in) {
+		in = filepath.Join(root, in)
+	}
 	if excelStat, err := os.Stat(in); err != nil || !excelStat.IsDir() {
 		logger.Fatal("excel路径必须存在且为目录: %v ", in)
 	}
@@ -83,8 +86,10 @@ func preparePath() {
 	logger.Trace("输入目录:%v", in)
 
 	logger.Trace("====================开始检查输出路径====================")
-	if p := cosgo.Config.GetString(FlagsNameOut); p != "" {
-		out := filepath.Join(root, p)
+	if out := cosgo.Config.GetString(FlagsNameOut); out != "" {
+		if !filepath.IsAbs(out) {
+			out = filepath.Join(root, out)
+		}
 		if excelStat, err := os.Stat(out); err != nil || !excelStat.IsDir() {
 			logger.Fatal("静态数据目录错误: %v ", out)
 		}
@@ -103,28 +108,22 @@ func preparePath() {
 		logger.Trace("输出目录:%v", out)
 	}
 	logger.Trace("====================开始检查GO输出路径====================")
-	if p := cosgo.Config.GetString(FlagsNameGo); p != "" {
-		goOutPath := filepath.Join(root, p)
+	if goOutPath := cosgo.Config.GetString(FlagsNameGo); goOutPath != "" {
+		if !filepath.IsAbs(goOutPath) {
+			goOutPath = filepath.Join(root, goOutPath)
+		}
 		if excelStat, err := os.Stat(goOutPath); err != nil || !excelStat.IsDir() {
 			logger.Fatal("GO文件输出目录错误: %v ", goOutPath)
 		}
-		//fs, _ := os.ReadDir(goOutPath)
-		//logger.Trace("删除GO输出径中的文件")
-		//for _, filename := range fs {
-		//	if strings.HasSuffix(filename.Name(), ".go") {
-		//		err := os.Remove(filepath.Join(goOutPath, filename.Name()))
-		//		if err != nil {
-		//			logger.Fatal(err)
-		//		}
-		//	}
-		//}
 		cosgo.Config.Set(FlagsNameGo, goOutPath)
 		logger.Trace("GO输出目录:%v", goOutPath)
 	}
 
 	logger.Trace("====================开始检查JSON输出路径====================")
-	if p := cosgo.Config.GetString(FlagsNameJson); p != "" {
-		jsonPath := filepath.Join(root, p)
+	if jsonPath := cosgo.Config.GetString(FlagsNameJson); jsonPath != "" {
+		if !filepath.IsAbs(jsonPath) {
+			jsonPath = filepath.Join(root, jsonPath)
+		}
 		if excelStat, err := os.Stat(jsonPath); err != nil || !excelStat.IsDir() {
 			logger.Fatal("JSON输出目录错误: %v ", jsonPath)
 		}
@@ -154,12 +153,14 @@ func preparePath() {
 		}
 	}
 	logger.Trace("====================开始检查多语言文件====================")
-	if s := cosgo.Config.GetString(FlagsNameLanguage); s != "" {
-		languagePath := filepath.Join(root, s)
+	if languagePath := cosgo.Config.GetString(FlagsNameLanguage); languagePath != "" {
+		if !filepath.IsAbs(languagePath) {
+			languagePath = filepath.Join(root, languagePath)
+		}
 		if excelStat, err := os.Stat(languagePath); err != nil {
 			logger.Fatal("语言文件错误: %v ", err)
 		} else if excelStat.IsDir() {
-			logger.Fatal("语言文件不能是一个目录: %v ", s)
+			logger.Fatal("语言文件不能是一个目录: %v ", languagePath)
 		} else if ext := filepath.Ext(languagePath); ext != ".xlsx" && ext != ".xls" {
 			logger.Fatal("语言文件必须是Excel(xlsx,xls) ")
 		}
