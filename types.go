@@ -50,6 +50,7 @@ func Require(t ProtoBuffType) ProtoBuffParse {
 }
 
 func ProtoBuffTypeFormat(t string) ProtoBuffType {
+	t = Convert(t)
 	t = strings.TrimSpace(t)
 	switch t {
 	case "int", "int32", "num", "number":
@@ -126,6 +127,7 @@ func (*ProtoBuffParseDefault) Repeated() bool {
 }
 
 func (*ProtoBuffParseDefault) trimInt(s string) string {
+	s = Convert(s)
 	if i := strings.Index(s, "."); i > 0 {
 		s = s[0:i]
 	}

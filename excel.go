@@ -56,6 +56,7 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 	//maxRow := v.MaxRow
 	//logger.Trace("----开始读取表格[%v],共有%v行", v.Name, maxRow)
 	sheet := &Sheet{Sheet: v}
+	sheet.Name = Convert(sheet.Name)
 	sheet.Parser = Config.Parser(sheet)
 	var ok bool
 	if sheet.Skip, sheet.ProtoName, ok = sheet.Parser.Verify(); !ok {
@@ -69,14 +70,13 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 		//logger.Debug("表[%v]字段为空已经跳过", sheet.SheetName)
 		return nil
 	}
+
 	//格式化ProtoName
 	sheet.ProtoName = TrimProtoName(sheet.ProtoName)
 
 	if sheet.ProtoName == "" || strings.HasPrefix(sheet.Name, "~") || strings.HasPrefix(sheet.ProtoName, "~") {
 		return nil
 	}
-
-	//sheet.LowerName = strings.ToLower(sheet.ProtoName)
 	var index int
 	var fields []*Field
 	for _, field := range sheet.Fields {
@@ -88,18 +88,14 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 		field.ProtoIndex = index
 		field.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
 		fields = append(fields, field)
-		//
-		//if field.ProtoRequire == FieldTypeNone {
-		//	field.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
-		//} else {
-		//	field.ProtoDesc = field.ProtoName
-		//}
 	}
 	sheet.Fields = fields
 	if sheet.SheetType == SheetTypeStruct {
 		sheet.reParseObjField()
 	}
-	sheets[sheet.ProtoName] = sheet
+	if len(sheet.Fields) > 0 {
+		sheets[sheet.ProtoName] = sheet
+	}
 	//格外的Struct
 	if ev := Config.enums[sheet.ProtoName]; ev != nil {
 		newSheet := *sheet
@@ -107,7 +103,9 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 		newSheet.SheetType = SheetTypeStruct
 		newSheet.SheetIndex = ev.Index
 		newSheet.reParseObjField()
-		sheets[newSheet.ProtoName] = &newSheet
+		if len(newSheet.Fields) > 0 {
+			sheets[newSheet.ProtoName] = &newSheet
+		}
 	}
 	return
 }

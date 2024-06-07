@@ -9,7 +9,23 @@ import (
 	"strings"
 )
 
+// Convert 全角转半角
+func Convert(s string) string {
+	str := []rune(s)
+	length := len(str)
+	for i := 0; i < length; i++ {
+		if str[i] == 12288 {
+			str[i] = 32
+			continue
+		} else if str[i] > 65280 && str[i] < 65375 {
+			str[i] = str[i] - 65248
+		}
+	}
+	return string(str)
+}
+
 func TrimProtoName(s string) string {
+	s = Convert(s)
 	s = strings.TrimSpace(s)
 	s = strings.TrimPrefix(s, "_")
 	s = FirstUpper(s)
@@ -23,7 +39,7 @@ func TrimProtoName(s string) string {
 
 func Ignore(f string) bool {
 	_, name := filepath.Split(f)
-	if strings.HasPrefix(name, "~") {
+	if strings.HasPrefix(Convert(name), "~") {
 		return false
 	}
 	if !strings.HasSuffix(f, ".xlsx") {
