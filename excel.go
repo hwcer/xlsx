@@ -16,7 +16,7 @@ func LoadExcel(dir string) {
 	for _, file := range files {
 		//wb, err := spreadsheet.Open(file)
 		wb, err := xlsx.OpenFile(file)
-		//logger.Trace("解析文件:%v", file)
+		logger.Trace("解析文件:%v", file)
 		if err != nil {
 			logger.Fatal("excel文件格式错误:%v\n%v", file, err)
 		}
@@ -24,7 +24,9 @@ func LoadExcel(dir string) {
 			for k, v := range parseSheet(sheet) {
 				//lowerName := strings.ToLower(v.ProtoName)
 				if i, ok := filter[k]; ok {
-					logger.Alert("表格名字[%v]重复自动跳过\n----FROM:%v\n----TODO:%v", v.Name, i.Name, file)
+					logger.Alert("表格名字[%v]重复自动跳过", v.ProtoName)
+					logger.Alert("----sheet:%v,file:%v", v.Name, v.FileName)
+					logger.Alert("----sheet:%v,file:%v", i.Name, i.FileName)
 				} else {
 					protoIndex += 1
 					v.FileName = file

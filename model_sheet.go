@@ -139,7 +139,7 @@ func (this *Sheet) kv() (any, []error) {
 	}
 
 	if len(emptyCell) > 10 {
-		//logger.Trace("%v共%v行ID为空已经忽略:%v", this.ProtoName, len(emptyCell), emptyCell)
+		logger.Trace("%v共%v行ID为空已经忽略", this.ProtoName, len(emptyCell))
 	}
 	return r, errs
 }
