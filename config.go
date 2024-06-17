@@ -63,7 +63,7 @@ var Config = &config{
 	Package:              "data",
 	Summary:              "data",
 	Language:             []string{"text", "lang", "language"},
-	LanguageNewSheetName: "新增文本",
+	LanguageNewSheetName: "多语言文本",
 }
 
 func (this *config) SetType(t SheetType, names ...string) {

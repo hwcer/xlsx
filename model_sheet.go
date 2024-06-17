@@ -242,7 +242,7 @@ func (this *Sheet) Language(r map[string]string, types map[string]bool) {
 		if !utils.Empty(id) {
 			for _, f := range fields {
 				if c := row.GetCell(f.Index[0]); c != nil {
-					k := fmt.Sprintf("%v_%v_%v", this.ProtoName, id, f.Name)
+					k := fmt.Sprintf("%v_%v_%v", this.ProtoName, f.Name, id)
 					r[k] = c.Value
 				}
 			}
