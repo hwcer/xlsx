@@ -78,7 +78,7 @@ func (this *config) GetType(name string) SheetType {
 }
 
 func init() {
-	Config.SetType(SheetTypeHash, "map")
+	Config.SetType(SheetTypeHash, "map", "hash")
 	Config.SetType(SheetTypeArray, "arr", "array", "slice")
 	Config.SetType(SheetTypeStruct, "kv", "kvs", "obj", "object", "struct")
 }
