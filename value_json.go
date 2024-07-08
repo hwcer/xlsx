@@ -10,13 +10,14 @@ import (
 
 func writeValueJson(sheets []*Sheet) {
 	logger.Trace("======================开始生成JSON数据======================")
-	//data := map[string]any{}
+	data := map[string]any{}
 	var errs []error
 	for _, sheet := range sheets {
 		if v, e := sheet.Values(); len(e) == 0 {
-			if e2 := writeFile(sheet.ProtoName, v); e2 != nil {
-				errs = append(errs, e2)
-			}
+			data[sheet.ProtoName] = v
+			//if e2 := writeFile(sheet.ProtoName, v); e2 != nil {
+			//	errs = append(errs, e2)
+			//}
 		} else {
 			errs = append(errs, e...)
 		}
@@ -28,19 +29,26 @@ func writeValueJson(sheets []*Sheet) {
 		}
 		//os.Exit(0)
 	}
-
+	path := cosgo.Config.GetString(FlagsNameJson)
+	if filepath.Ext(path) == ".json" {
+		writeFile(path, data)
+	} else {
+		for k, v := range data {
+			file := filepath.Join(path, k+".json")
+			writeFile(file, v)
+		}
+	}
 }
 
-func writeFile(name string, data any) error {
+func writeFile(file string, data any) {
 	b, err := json.Marshal(data)
 	if err != nil {
-		return err
+		logger.Error("writeFile:%v", err)
+		return
 	}
 
-	file := filepath.Join(cosgo.Config.GetString(FlagsNameJson), name+".json")
+	//file := filepath.Join(cosgo.Config.GetString(FlagsNameJson), name+".json")
 	if err = os.WriteFile(file, b, os.ModePerm); err != nil {
-		return err
+		logger.Error("writeFile:%v", err)
 	}
-	//logger.Trace("JSON Data File:%v", file)
-	return nil
 }

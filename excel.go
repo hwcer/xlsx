@@ -53,7 +53,7 @@ func LoadExcel(dir string) {
 }
 
 func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
-	tag := strings.ToUpper(cosgo.Config.GetString(FlagsNameTag))
+	//tag := strings.ToUpper(cosgo.Config.GetString(FlagsNameTag))
 	sheets = map[string]*Sheet{}
 	//countArr := []int{1, 101, 201, 301}
 	//maxRow := v.MaxRow
@@ -65,11 +65,8 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 	if sheet.Skip, sheet.ProtoName, ok = sheet.Parser.Verify(); !ok {
 		return nil
 	}
-	if i := strings.Index(sheet.ProtoName, ":"); i > 0 {
-		if tag != "" && tag != strings.ToUpper(sheet.ProtoName[i+1:]) {
-			return nil
-		}
-		sheet.ProtoName = sheet.ProtoName[0:i]
+	if sheet.ProtoName, ok = VerifyName(sheet.ProtoName); !ok {
+		return nil
 	}
 
 	var pt ParserSheetType
@@ -94,11 +91,8 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 			logger.Alert("****************未知的数据类型,Sheet:%v ,Type:%v", sheet.Name, field.ProtoType)
 			continue
 		}
-		if i := strings.Index(field.Name, ":"); i > 0 {
-			if tag != "" && tag != strings.ToUpper(field.Name[i+1:]) {
-				continue
-			}
-			field.Name = field.Name[0:i]
+		if field.Name, ok = VerifyName(field.Name); !ok {
+			continue
 		}
 		index++
 		field.ProtoIndex = index

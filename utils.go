@@ -1,6 +1,7 @@
 package xlsx
 
 import (
+	"fmt"
 	"github.com/hwcer/cosgo"
 	"github.com/hwcer/logger"
 	"github.com/tealeg/xlsx/v3"
@@ -8,6 +9,17 @@ import (
 	"path/filepath"
 	"strings"
 )
+
+func VerifyName(s string) (k string, ok bool) {
+	i := strings.Index(s, ":")
+	if i == -1 {
+		return s, true
+	}
+	k = s[i+1:]
+	tag := strings.ToUpper(cosgo.Config.GetString(FlagsNameTag))
+	ok = tag == "" || tag == strings.ToUpper(s[0:i])
+	return
+}
 
 // Convert 全角转半角
 func Convert(s string) string {
@@ -140,18 +152,26 @@ func preparePath() {
 		if !filepath.IsAbs(jsonPath) {
 			jsonPath = filepath.Join(root, jsonPath)
 		}
-		if excelStat, err := os.Stat(jsonPath); err != nil || !excelStat.IsDir() {
-			logger.Fatal("JSON输出目录错误: %v ", jsonPath)
-		}
-		fs, _ := os.ReadDir(jsonPath)
-		logger.Trace("删除JSON文件")
-		for _, filename := range fs {
-			if strings.HasSuffix(filename.Name(), ".json") {
-				err := os.Remove(filepath.Join(jsonPath, filename.Name()))
-				if err != nil {
-					logger.Fatal(err)
+		excelStat, err := os.Stat(jsonPath)
+		if err == nil && excelStat.IsDir() {
+			fs, _ := os.ReadDir(jsonPath)
+			logger.Trace("删除JSON文件")
+			for _, filename := range fs {
+				if strings.HasSuffix(filename.Name(), ".json") {
+					err = os.Remove(filepath.Join(jsonPath, filename.Name()))
 				}
 			}
+		} else if strings.ToLower(filepath.Ext(jsonPath)) == ".json" {
+			if err == nil {
+				err = os.Remove(jsonPath)
+			} else {
+				err = nil
+			}
+		} else {
+			err = fmt.Errorf("JSON输出目录错误:%v", jsonPath)
+		}
+		if err != nil {
+			logger.Fatal(err)
 		}
 		cosgo.Config.Set(FlagsNameJson, jsonPath)
 		logger.Trace("JSON输出目录:%v", jsonPath)
