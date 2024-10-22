@@ -1,0 +1,6 @@
+in="./excel"
+out="./output"
+info="./output"
+json="./data/"
+ignore=""
+branch=""

@@ -44,6 +44,9 @@ func LoadExcel(dir string) {
 	if cosgo.Config.GetString(FlagsNameJson) != "" {
 		writeValueJson(sheets)
 	}
+	if cosgo.Config.GetString(FlagsNameInfo) != "" {
+		writeValueInfo(sheets)
+	}
 	if cosgo.Config.GetString(FlagsNameGo) != "" {
 		ProtoGo()
 	}
@@ -56,8 +59,8 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 	//tag := strings.ToUpper(cosgo.Config.GetString(FlagsNameTag))
 	sheets = map[string]*Sheet{}
 	//countArr := []int{1, 101, 201, 301}
-	//maxRow := v.MaxRow
-	//logger.Trace("----开始读取表格[%v],共有%v行", v.Name, maxRow)
+	maxRow := v.MaxRow
+	logger.Trace("----开始读取表格[%v],共有%v行", v.Name, maxRow)
 	sheet := &Sheet{Sheet: v}
 	sheet.Name = Convert(sheet.Name)
 	sheet.Parser = Config.Parser(sheet)
@@ -73,7 +76,9 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 	if pt, ok = sheet.Parser.(ParserSheetType); ok {
 		sheet.SheetType, sheet.SheetIndex = pt.SheetType()
 	}
-	if sheet.Fields = sheet.Parser.Fields(); len(sheet.Fields) == 0 {
+
+	fields := sheet.Parser.Fields()
+	if len(fields) == 0 {
 		//logger.Debug("表[%v]字段为空已经跳过", sheet.SheetName)
 		return nil
 	}
@@ -85,8 +90,9 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 		return nil
 	}
 	var index int
-	var fields []*Field
-	for _, field := range sheet.Fields {
+	fieldsMap := map[string]*Field{}
+
+	for _, field := range fields {
 		if h := Require(field.ProtoType); h == nil {
 			logger.Alert("****************未知的数据类型,Sheet:%v ,Type:%v", sheet.Name, field.ProtoType)
 			continue
@@ -94,13 +100,32 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 		if field.Name, ok = VerifyName(field.Name); !ok {
 			continue
 		}
-		index++
-		field.ProtoIndex = index
-		field.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
-		fields = append(fields, field)
+		if i := strings.Index(field.Name, VersionTagChar); i > 0 {
+			version := field.Name[i+1:]
+			field.Name = field.Name[:i]
+			fm := fieldsMap[field.Name]
+			if fm == nil {
+				index++
+				field.ProtoIndex = index
+				field.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
+				sheet.Fields = append(sheet.Fields, field)
+				fieldsMap[field.Name] = fm
+				fm = field
+			}
+			fm.SetVersion(version, field)
+		} else if fm := fieldsMap[field.Name]; fm != nil {
+			fm.Dummy = field.Dummy
+			fm.Index = field.Index
+			field.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
+		} else {
+			index++
+			field.ProtoIndex = index
+			field.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
+			sheet.Fields = append(sheet.Fields, field)
+		}
 
 	}
-	sheet.Fields = fields
+	//sheet.Fields = fields
 	if sheet.SheetType == SheetTypeStruct {
 		sheet.reParseObjField()
 	}

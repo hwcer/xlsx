@@ -100,6 +100,7 @@ func GetFiles(dir string, filter func(string) bool) (r []string) {
 }
 
 func preparePath() {
+	var err error
 	// excel文件必须存在
 	logger.Trace("====================开始检查EXCEL路径====================")
 	root := cosgo.Dir()
@@ -140,8 +141,13 @@ func preparePath() {
 		if !filepath.IsAbs(goOutPath) {
 			goOutPath = filepath.Join(root, goOutPath)
 		}
-		if excelStat, err := os.Stat(goOutPath); err != nil || !excelStat.IsDir() {
-			logger.Fatal("GO文件输出目录错误: %v ", goOutPath)
+		if ext := filepath.Ext(goOutPath); ext != "" {
+			err = checkFileAndRemove(goOutPath)
+		} else {
+			err = checkDirAndRemove(goOutPath, "")
+		}
+		if err != nil {
+			logger.Fatal(err)
 		}
 		cosgo.Config.Set(FlagsNameGo, goOutPath)
 		logger.Trace("GO输出目录:%v", goOutPath)
@@ -152,29 +158,30 @@ func preparePath() {
 		if !filepath.IsAbs(jsonPath) {
 			jsonPath = filepath.Join(root, jsonPath)
 		}
-		excelStat, err := os.Stat(jsonPath)
-		if err == nil && excelStat.IsDir() {
-			fs, _ := os.ReadDir(jsonPath)
-			logger.Trace("删除JSON文件")
-			for _, filename := range fs {
-				if strings.HasSuffix(filename.Name(), ".json") {
-					err = os.Remove(filepath.Join(jsonPath, filename.Name()))
-				}
-			}
-		} else if strings.ToLower(filepath.Ext(jsonPath)) == ".json" {
-			if err == nil {
-				err = os.Remove(jsonPath)
-			} else {
-				err = nil
-			}
+		if ext := filepath.Ext(jsonPath); ext != "" {
+			err = checkFileAndRemove(jsonPath)
 		} else {
-			err = fmt.Errorf("JSON输出目录错误:%v", jsonPath)
+			err = checkDirAndRemove(jsonPath, ".json")
 		}
 		if err != nil {
 			logger.Fatal(err)
 		}
 		cosgo.Config.Set(FlagsNameJson, jsonPath)
 		logger.Trace("JSON输出目录:%v", jsonPath)
+	}
+	logger.Trace("====================开始检查Info输出路径====================")
+	if infoPath := cosgo.Config.GetString(FlagsNameInfo); infoPath != "" {
+		if !filepath.IsAbs(infoPath) {
+			infoPath = filepath.Join(root, infoPath)
+		}
+		if ext := filepath.Ext(infoPath); ext == "" {
+			infoPath = filepath.Join(infoPath, "info.json")
+		}
+		if err = checkFileAndRemove(infoPath); err != nil {
+			logger.Fatal(err)
+		}
+		cosgo.Config.Set(FlagsNameInfo, infoPath)
+		logger.Trace("INFO输出目录:%v", infoPath)
 	}
 
 	logger.Trace("====================开始检查忽略文件列表====================")
@@ -204,4 +211,44 @@ func preparePath() {
 	} else {
 		logger.Trace("未设置语言文件,已经跳过")
 	}
+}
+
+func checkDirAndRemove(path string, ext string) error {
+	stat, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	if !stat.IsDir() {
+		return fmt.Errorf("目录错误:%v", path)
+	}
+	fs, err := os.ReadDir(path)
+	if err != nil {
+		return err
+	}
+	if ext == "" {
+		return nil
+	}
+	logger.Trace("清理目录:%v", path)
+	for _, filename := range fs {
+		if strings.HasSuffix(strings.ToLower(filename.Name()), ext) {
+			if err = os.Remove(filepath.Join(path, filename.Name())); err != nil {
+				return fmt.Errorf("清理文件错误:%v", path)
+			}
+		}
+	}
+	return nil
+}
+func checkFileAndRemove(path string) error {
+	stat, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		} else {
+			return err
+		}
+	}
+	if stat.IsDir() {
+		return fmt.Errorf("文件错误:%v", path)
+	}
+	return os.Remove(path)
 }

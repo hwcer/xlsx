@@ -3,19 +3,21 @@ package xlsx
 import (
 	"fmt"
 	"github.com/tealeg/xlsx/v3"
+	"strings"
 )
 
 // Field 基础字段
 //
 // Field.ProtoType 除proto基础数据类型外还可以自定义类型  array, arrInt,arrObj...
 type Field struct {
-	Name       string        //字段名字
-	Index      []int         //字段关联的CELL索引
-	Dummy      []*Dummy      //子对象
-	ProtoDesc  string        //备注信息
-	FieldType  string        //表格中定义的原始字段类型
-	ProtoType  ProtoBuffType //PROTO字段类型,和SheetType有一定的关联性
-	ProtoIndex int           //proto index 自动生产
+	Name       string            //字段名字
+	Index      []int             //字段关联的CELL索引
+	Dummy      []*Dummy          //子对象
+	FieldType  string            //表格中定义的原始字段类型
+	ProtoDesc  string            //备注信息
+	ProtoType  ProtoBuffType     //PROTO字段类型,和SheetType有一定的关联性
+	ProtoIndex int               //proto index 自动生产
+	Version    map[string]*Field //版本分支,仅影响数据，不影响结构,不支持子对象
 }
 
 func (this *Field) Type() string {
@@ -28,13 +30,27 @@ func (this *Field) Type() string {
 	}
 }
 
+func (this *Field) SetVersion(k string, v *Field) {
+	if this.Version == nil {
+		this.Version = make(map[string]*Field)
+	}
+	k = strings.ToUpper(k)
+	this.Version[k] = v
+}
+
 // Value 根据一行表格获取值
 func (this *Field) Value(row *xlsx.Row) (ret any, err error) {
 	handle := Require(this.ProtoType)
-	if len(this.Dummy) > 0 {
-		ret, err = this.getDummyValue(row, handle)
+	f := this
+	if ver := strings.ToUpper(Config.Version); ver != "" {
+		if i, ok := this.Version[ver]; ok {
+			f = i
+		}
+	}
+	if len(f.Dummy) > 0 {
+		ret, err = f.getDummyValue(row, handle)
 	} else if handle != nil {
-		ret, err = this.getProtoValue(row, handle)
+		ret, err = f.getProtoValue(row, handle)
 	} else {
 		err = fmt.Errorf("无法识别的类型(%v)", this.Name)
 	}
@@ -46,11 +62,12 @@ func (this *Field) Value(row *xlsx.Row) (ret any, err error) {
 
 // getProtoValue 基础和预定义类型
 func (this *Field) getProtoValue(row *xlsx.Row, handle ProtoBuffParse) (any, error) {
-	if len(this.Index) == 0 {
+	index := this.Index
+	if len(index) == 0 {
 		return nil, fmt.Errorf("字段名:%v,错误信息:%v", this.Name, "缺少有效的数据列")
 	}
 	var vs []string
-	for _, i := range this.Index {
+	for _, i := range index {
 		if c := row.GetCell(i); c != nil {
 			vs = append(vs, c.Value)
 		}

@@ -11,7 +11,9 @@ const (
 	FlagsNameOut      string = "out"
 	FlagsNameTag      string = "tag"
 	FlagsNameJson     string = "json"
-	FlagsNameIgnore   string = "ignore"
+	FlagsNameInfo     string = "info"     //表结构
+	FlagsNameIgnore   string = "ignore"   //忽略列表
+	FlagsNameBranch   string = "branch"   //使用特定版本分支
 	FlagsNameLanguage string = "language" //多语言文件
 )
 
@@ -24,8 +26,10 @@ func init() {
 	cosgo.Config.Flags(FlagsNameOut, "", "", "输出文件目录")
 	cosgo.Config.Flags(FlagsNameTag, "", "", "字段标记，一般用来区分前后端字段,格式 name:C,value:S")
 	cosgo.Config.Flags(FlagsNameGo, "", "", "生成的GO文件")
+	cosgo.Config.Flags(FlagsNameInfo, "", "", "表结构信息")
 	cosgo.Config.Flags(FlagsNameJson, "", "", "是否导json格式")
 	cosgo.Config.Flags(FlagsNameIgnore, "", "", "忽略的文件或者文件夹逗号分割多个")
+	cosgo.Config.Flags(FlagsNameBranch, "", "", "使用特定版本分支")
 	cosgo.Config.Flags(FlagsNameLanguage, "", "", "生产的多语言EXCEL文件,默认不生成")
 }
 
