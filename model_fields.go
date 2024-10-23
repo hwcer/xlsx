@@ -2,6 +2,7 @@ package xlsx
 
 import (
 	"fmt"
+	"github.com/hwcer/cosgo"
 	"github.com/tealeg/xlsx/v3"
 	"strings"
 )
@@ -17,7 +18,7 @@ type Field struct {
 	ProtoDesc  string            //备注信息
 	ProtoType  ProtoBuffType     //PROTO字段类型,和SheetType有一定的关联性
 	ProtoIndex int               //proto index 自动生产
-	Version    map[string]*Field //版本分支,仅影响数据，不影响结构,不支持子对象
+	Branch     map[string]*Field //版本分支,仅影响数据，不影响结构,不支持子对象
 }
 
 func (this *Field) Type() string {
@@ -30,27 +31,33 @@ func (this *Field) Type() string {
 	}
 }
 
-func (this *Field) SetVersion(k string, v *Field) {
-	if this.Version == nil {
-		this.Version = make(map[string]*Field)
+func (this *Field) SetBranch(k string, v *Field) {
+	if this.Branch == nil {
+		this.Branch = make(map[string]*Field)
 	}
 	k = strings.ToUpper(k)
-	this.Version[k] = v
+	this.Branch[k] = v
+}
+func (this *Field) GetBranch() *Field {
+	f := this
+	if len(f.Branch) == 0 {
+		return f
+	}
+	if branch := strings.ToUpper(cosgo.Config.GetString(FlagsNameBranch)); branch != "" {
+		if i, ok := this.Branch[branch]; ok {
+			f = i
+		}
+	}
+	return f
 }
 
 // Value 根据一行表格获取值
 func (this *Field) Value(row *xlsx.Row) (ret any, err error) {
 	handle := Require(this.ProtoType)
-	f := this
-	if ver := strings.ToUpper(Config.Version); ver != "" {
-		if i, ok := this.Version[ver]; ok {
-			f = i
-		}
-	}
-	if len(f.Dummy) > 0 {
-		ret, err = f.getDummyValue(row, handle)
+	if len(this.Dummy) > 0 {
+		ret, err = this.getDummyValue(row, handle)
 	} else if handle != nil {
-		ret, err = f.getProtoValue(row, handle)
+		ret, err = this.getProtoValue(row, handle)
 	} else {
 		err = fmt.Errorf("无法识别的类型(%v)", this.Name)
 	}

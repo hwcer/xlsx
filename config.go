@@ -58,7 +58,6 @@ type config struct {
 	Message              func() string        //可以加人proto全局对象
 	Language             []string             //多语言文本包含的类型
 	LanguageNewSheetName string               //多语言增量页签名
-	Version              string               //版本分支
 }
 
 var Config = &config{

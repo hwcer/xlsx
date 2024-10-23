@@ -101,27 +101,34 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 			continue
 		}
 		if i := strings.Index(field.Name, VersionTagChar); i > 0 {
-			version := field.Name[i+1:]
+			branch := field.Name[i+1:]
 			field.Name = field.Name[:i]
 			fm := fieldsMap[field.Name]
 			if fm == nil {
+				fm = &Field{}
 				index++
-				field.ProtoIndex = index
-				field.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
-				sheet.Fields = append(sheet.Fields, field)
+				fm.Name = field.Name
+				fm.FieldType = field.FieldType
+				fm.ProtoType = field.ProtoType
+				fm.ProtoIndex = index
+				fm.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
+				sheet.Fields = append(sheet.Fields, fm)
 				fieldsMap[field.Name] = fm
-				fm = field
 			}
-			fm.SetVersion(version, field)
+			fm.SetBranch(branch, field)
 		} else if fm := fieldsMap[field.Name]; fm != nil {
+			fm.Name = field.Name
 			fm.Dummy = field.Dummy
 			fm.Index = field.Index
+			fm.FieldType = field.FieldType
+			fm.ProtoType = field.ProtoType
 			field.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
 		} else {
 			index++
 			field.ProtoIndex = index
 			field.ProtoDesc = strings.ReplaceAll(field.ProtoDesc, "\n", "")
 			sheet.Fields = append(sheet.Fields, field)
+			fieldsMap[field.Name] = field
 		}
 
 	}

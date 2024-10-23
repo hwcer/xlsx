@@ -214,7 +214,7 @@ func (this *Sheet) array() (any, []error) {
 func (this *Sheet) Value(row *xlsx.Row) (map[string]any, error) {
 	r := map[string]any{}
 	for _, field := range this.Fields {
-		v, e := field.Value(row)
+		v, e := field.GetBranch().Value(row)
 		if e != nil {
 			return nil, e
 		} else {
@@ -228,6 +228,7 @@ func (this *Sheet) Value(row *xlsx.Row) (map[string]any, error) {
 func (this *Sheet) Language(r map[string]string, types map[string]bool) {
 	var fields []*Field
 	for _, v := range this.Fields {
+		v = v.GetBranch()
 		if h := Require(v.ProtoType); !h.Repeated() && len(v.Dummy) == 0 && len(v.Index) == 1 && types[v.FieldType] {
 			fields = append(fields, v)
 		}
