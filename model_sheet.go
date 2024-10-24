@@ -13,15 +13,53 @@ type GlobalDummy map[string]*Dummy
 var ignoreFiles []string
 var globalObjects = GlobalDummy{}
 
-// Search 查找可能兼容的对象
-func (this *GlobalDummy) Search(d *Dummy) (r string, ok bool) {
-	dict := *this
-	for k, v := range dict {
-		if v.Label == d.Label {
-			return k, true
+func (this GlobalDummy) Name(d *Dummy) string {
+	label := d.Compile()
+	if v, ok := this[label]; ok && v.Name != "" {
+		return v.Name
+	} else {
+		return label
+	}
+}
+
+// Exist 查找名字是否存在
+func (this GlobalDummy) Exist(d *Dummy) *Dummy {
+	if d.Name == "" {
+		return nil
+	}
+	for _, v := range this {
+		if d.Name == v.Name && d.Compile() != v.Compile() {
+			return v
 		}
 	}
-	return
+	return nil
+}
+
+func (this GlobalDummy) Insert(sheet *Sheet, d *Dummy, must ...bool) {
+	label := d.Compile()
+	if !Config.EnableGlobalDummyName && (len(must) == 0 || !must[0]) {
+		d.Name = label
+	}
+	if e := globalObjects.Exist(d); e != nil {
+		logger.Trace("子对象名重复并且属性不一样:%v.%v  Label:%v", sheet.ProtoName, d.Name, d.Compile())
+		d.Name = label
+	}
+	if d.Name == "" {
+		d.Name = Config.ProtoNameFilter(SheetTypeHash, label)
+	} else {
+		d.Name = Config.ProtoNameFilter(SheetTypeHash, d.Name)
+	}
+	v, ok := this[label]
+	if !ok {
+		this[label] = d
+		return
+	}
+
+	if v.Name == "" {
+		v.Name = d.Name
+	} else if d.Name != "" && v.Name != d.Name {
+		logger.Trace("冗余的对象名称%v,建议修改成%v", d.Name, v.Name)
+	}
 }
 
 type Sheet struct {
@@ -34,6 +72,7 @@ type Sheet struct {
 	ProtoIndex int       //总表编号
 	SheetType  SheetType //输出类型,kv arr map
 	SheetIndex [4]int    //kv 模式下的字段
+	DummyName  string    // array 模式下子对象名称
 }
 
 //const RowId = "id"
@@ -98,7 +137,7 @@ func (this *Sheet) GetField(name string) *Field {
 }
 
 func (this *Sheet) Values() (any, []error) {
-	if this.SheetType == SheetTypeStruct {
+	if this.SheetType == SheetTypeEnum {
 		return this.kv()
 	} else if this.SheetType == SheetTypeArray {
 		return this.array()
@@ -255,29 +294,21 @@ func (this *Sheet) Language(r map[string]string, types map[string]bool) {
 func (this *Sheet) GlobalObjectsProtoName() {
 	for _, field := range this.Fields {
 		if len(field.Dummy) > 0 {
-			t := field.Type()
+			//t := field.Type()
 			dummy := field.Dummy[0]
-			if k, ok := globalObjects.Search(dummy); ok {
-				//field.ProtoType = k
-				if t != k {
-					logger.Trace("冗余的对象名称%v.%v,建议修改成%v", this.ProtoName, t, k)
-				}
-			} else {
-				//field.ProtoType = name
-				globalObjects[t] = dummy
-			}
+			globalObjects.Insert(this, dummy)
 		}
 	}
 }
 
 // GlobalObjectsAutoName 自动命名
-func (this *Sheet) GlobalObjectsAutoName() {
-	for _, field := range this.Fields {
-		if len(field.Dummy) > 0 {
-			dummy := field.Dummy[0]
-			if _, ok := globalObjects.Search(dummy); !ok {
-				globalObjects[dummy.Label] = dummy
-			}
-		}
-	}
-}
+//func (this *Sheet) GlobalObjectsAutoName() {
+//	for _, field := range this.Fields {
+//		if len(field.Dummy) > 0 {
+//			dummy := field.Dummy[0]
+//			if _, ok := globalObjects.Search(dummy); !ok {
+//				globalObjects[dummy.Label] = dummy
+//			}
+//		}
+//	}
+//}

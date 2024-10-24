@@ -23,7 +23,7 @@ type Field struct {
 
 func (this *Field) Type() string {
 	if len(this.Dummy) > 0 {
-		return this.Dummy[0].Name
+		return globalObjects.Name(this.Dummy[0])
 	} else if handle := Require(this.ProtoType); handle != nil {
 		return handle.Type()
 	} else {

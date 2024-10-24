@@ -57,9 +57,8 @@ func (this *Field) compile() bool {
 
 	var label string
 	for _, v := range this.Dummy {
-		if s, e := v.Compile(); e != nil {
-			logger.Fatal("Field Compile:%v", e)
-		} else if label == "" {
+		s := v.Compile()
+		if label == "" {
 			label = s
 		} else if label != s {
 			logger.Fatal("%v 子对象类型不统一:%v -- %v", this.Name, label, s)
@@ -119,9 +118,12 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, cell *xlsx.Cell, index 
 		return len(this.flags) == 0 //TODO 只有ARRAY允许为空
 	}
 	//var protoName string
+	var dummyName string
 	if i, j := strings.Index(value, "<"), strings.Index(value, ">"); i >= 0 && j >= 0 {
 		this.Name = cosxls.FirstUpper(value[i+1 : j])
+		dummyName = value[i+1 : j]
 		value = value[j+1:]
+
 	}
 	//begin := false //不能在同一个单元格内同时开始和结束
 	name, suffix := "", ""
@@ -130,7 +132,7 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, cell *xlsx.Cell, index 
 		name = value[0:i]
 		suffix = value[i+2:]
 		this.flags = append(this.flags, "]", "}")
-		this.Dummy = append(this.Dummy, cosxls.NewDummy())
+		this.Dummy = append(this.Dummy, cosxls.NewDummy(dummyName))
 		protoType = FieldTypeArrayObject
 	} else if i = strings.Index(value, "["); i >= 0 {
 		//begin = true
@@ -150,7 +152,7 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, cell *xlsx.Cell, index 
 		name = value[0:i]
 		suffix = value[i+1:]
 		this.flags = append(this.flags, "}")
-		this.Dummy = append(this.Dummy, cosxls.NewDummy())
+		this.Dummy = append(this.Dummy, cosxls.NewDummy(dummyName))
 		protoType = FieldTypeObject
 	} else {
 		name = value

@@ -73,13 +73,14 @@ func buildGlobalObjects(b *strings.Builder, sheets []*Sheet) {
 	for _, s := range sheets {
 		s.GlobalObjectsProtoName()
 	}
-	for _, s := range sheets {
-		s.GlobalObjectsAutoName()
-	}
-	for k, dummy := range globalObjects {
-		dummy.Name = k
+	//for _, s := range sheets {
+	//	s.GlobalObjectsAutoName()
+	//}
+	for _, dummy := range globalObjects {
+		if dummy.Name == "" {
+			dummy.Name = globalObjects.Name(dummy)
+		}
 		ProtoDummy(dummy, b)
 	}
 
-	globalObjects = map[string]*Dummy{}
 }

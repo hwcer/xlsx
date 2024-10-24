@@ -9,14 +9,16 @@ import (
 
 type DummyField struct {
 	Name       string
-	label      string //NameType
+	label      string //Name ProtoType
 	ProtoType  ProtoBuffType
 	ProtoIndex int //最终索引ProtoIndex
 	SheetIndex int //表格中的索引
 }
 
-func NewDummy() *Dummy {
-	return &Dummy{}
+func NewDummy(name string) *Dummy {
+	d := new(Dummy)
+	d.Name = TrimProtoName(name)
+	return d
 }
 
 type Dummy struct {
@@ -52,9 +54,9 @@ func (this *Dummy) Add(name string, protoType ProtoBuffType, sheetIndex int) err
 }
 
 // Compile 编译并返回全局唯一名字(标记)
-func (this *Dummy) Compile() (string, error) {
-	if this.Name != "" {
-		return this.Name, nil
+func (this *Dummy) Compile() string {
+	if this.Label != "" {
+		return this.Label
 	}
 	sort.Slice(this.Fields, this.less)
 	var arr []string
@@ -63,8 +65,8 @@ func (this *Dummy) Compile() (string, error) {
 		arr = append(arr, v.label)
 	}
 	this.Label = strings.Join(arr, "")
-	this.Name = this.Label
-	return this.Label, nil
+	//this.Name = this.Label
+	return this.Label
 }
 
 // Value 填充对象值

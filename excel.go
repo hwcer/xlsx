@@ -37,15 +37,13 @@ func LoadExcel(dir string) {
 			}
 		}
 	}
+
 	if cosgo.Config.GetString(FlagsNameOut) != "" {
-		writeExcelIndex(sheets)
+		//writeExcelIndex(sheets)
 		writeProtoMessage(sheets)
 	}
 	if cosgo.Config.GetString(FlagsNameJson) != "" {
 		writeValueJson(sheets)
-	}
-	if cosgo.Config.GetString(FlagsNameInfo) != "" {
-		writeValueInfo(sheets)
 	}
 	if cosgo.Config.GetString(FlagsNameGo) != "" {
 		ProtoGo()
@@ -53,10 +51,15 @@ func LoadExcel(dir string) {
 	if p := cosgo.Config.GetString(FlagsNameLanguage); p != "" {
 		writeLanguage(sheets)
 	}
+	for _, out := range Config.Outputs {
+		out.Writer(sheets)
+	}
+	globalObjects = map[string]*Dummy{}
 }
 
 func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 	//tag := strings.ToUpper(cosgo.Config.GetString(FlagsNameTag))
+
 	sheets = map[string]*Sheet{}
 	//countArr := []int{1, 101, 201, 301}
 	maxRow := v.MaxRow
@@ -71,6 +74,11 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 	if sheet.ProtoName, ok = VerifyName(sheet.ProtoName); !ok {
 		return nil
 	}
+	//格式化ProtoName
+	sheet.ProtoName = TrimProtoName(sheet.ProtoName)
+	if sheet.ProtoName == "" || strings.HasPrefix(sheet.Name, "~") || strings.HasPrefix(sheet.ProtoName, "~") {
+		return nil
+	}
 
 	var pt ParserSheetType
 	if pt, ok = sheet.Parser.(ParserSheetType); ok {
@@ -83,12 +91,6 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 		return nil
 	}
 
-	//格式化ProtoName
-	sheet.ProtoName = TrimProtoName(sheet.ProtoName)
-
-	if sheet.ProtoName == "" || strings.HasPrefix(sheet.Name, "~") || strings.HasPrefix(sheet.ProtoName, "~") {
-		return nil
-	}
 	var index int
 	fieldsMap := map[string]*Field{}
 
@@ -132,10 +134,26 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 		}
 
 	}
+
 	//sheet.Fields = fields
-	if sheet.SheetType == SheetTypeStruct {
+	if sheet.SheetType == SheetTypeEnum {
 		sheet.reParseObjField()
 	}
+	//ARRAY
+	if sheet.SheetType == SheetTypeArray {
+		dummy := NewDummy(sheet.ProtoName)
+		for _, field := range sheet.Fields {
+			if len(field.Index) > 0 {
+				_ = dummy.Add(field.Name, field.ProtoType, field.Index[0])
+			}
+		}
+		globalObjects.Insert(sheet, dummy, true)
+		sheet.DummyName = dummy.Name
+		sheet.ProtoName = sheet.ProtoName + Config.ArraySuffix
+	}
+
+	sheet.ProtoName = Config.ProtoNameFilter(sheet.SheetType, sheet.ProtoName)
+
 	if len(sheet.Fields) > 0 {
 		sheets[sheet.ProtoName] = sheet
 	}
@@ -143,7 +161,7 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 	if ev := Config.enums[sheet.ProtoName]; ev != nil {
 		newSheet := *sheet
 		newSheet.ProtoName = ev.Name
-		newSheet.SheetType = SheetTypeStruct
+		newSheet.SheetType = SheetTypeEnum
 		newSheet.SheetIndex = ev.Index
 		newSheet.reParseObjField()
 		if len(newSheet.Fields) > 0 {

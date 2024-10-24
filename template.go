@@ -20,13 +20,14 @@ const TemplateDummy = `message <%.Name%>{ <%range .Fields%>
 
 const TemplateMessage = `
 <%- range .Sheets%>
+<%- if IsArray .SheetType %>
+message <%.ProtoName%>{
+	repeated <%.DummyName%> Coll = 1;
+}
+<%- else %>
 message <%.ProtoName%>{
 	<%- range .Fields %>
 	<%ProtoRequire .%> <%.Name%> = <%.ProtoIndex%>; //<% .ProtoDesc%><%end%>
-}
-<%- if IsArray .SheetType %>
-message <%.ProtoName%>Array{
-	repeated <%.ProtoName%> Coll = 1;
 }
 <%- end%>
 <%- end%>
@@ -83,10 +84,11 @@ func TemplateSummaryType(sheet *Sheet) string {
 	primary := sheet.Fields[0]
 	//var t string
 	switch sheet.SheetType {
-	case SheetTypeStruct:
+	case SheetTypeEnum:
 		return sheet.ProtoName
 	case SheetTypeArray:
-		return fmt.Sprintf("map<int32,%vArray>", sheet.ProtoName)
+		return fmt.Sprintf("map<int32,%v>", sheet.ProtoName)
+		//return fmt.Sprintf("repeated %v", sheet.DummyName)
 	default:
 		//t = fmt.Sprintf("%v%v", sheet.ProtoName, Config.Suffix)
 		return fmt.Sprintf("map<%v,%v>", primary.ProtoType, sheet.ProtoName)
@@ -127,6 +129,7 @@ func ProtoMessage(sheets []*Sheet, builder *strings.Builder) {
 	if err != nil {
 		logger.Fatal(err)
 	}
+
 	data := &struct {
 		//Suffix string
 		Sheets []*Sheet
@@ -145,17 +148,18 @@ func ProtoMessage(sheets []*Sheet, builder *strings.Builder) {
 		logger.Fatal(err)
 	}
 	//输出总表
-	data2 := &struct {
-		Name   string
-		Sheets []*Sheet
-	}{
-		Name:   Config.Summary,
-		Sheets: sheets,
+	if Config.Summary != "" {
+		data2 := &struct {
+			Name   string
+			Sheets []*Sheet
+		}{
+			Name:   Config.Summary,
+			Sheets: sheets,
+		}
+		err = t.Execute(builder, data2)
+		if err != nil {
+			logger.Fatal(err)
+		}
 	}
-	err = t.Execute(builder, data2)
-	if err != nil {
-		logger.Fatal(err)
-	}
-
 	return
 }

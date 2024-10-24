@@ -1,6 +1,7 @@
 package xlsx
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/hwcer/cosgo"
 	"github.com/hwcer/logger"
@@ -101,6 +102,9 @@ func GetFiles(dir string, filter func(string) bool) (r []string) {
 
 func preparePath() {
 	var err error
+	if cosgo.Config.IsSet(FlagsNameSummary) {
+		Config.Summary = cosgo.Config.GetString(FlagsNameSummary)
+	}
 	// excel文件必须存在
 	logger.Trace("====================开始检查EXCEL路径====================")
 	root := cosgo.Dir()
@@ -142,9 +146,9 @@ func preparePath() {
 			goOutPath = filepath.Join(root, goOutPath)
 		}
 		if ext := filepath.Ext(goOutPath); ext != "" {
-			err = checkFileAndRemove(goOutPath)
+			err = CheckFileAndRemove(goOutPath)
 		} else {
-			err = checkDirAndRemove(goOutPath, "")
+			err = CheckDirAndRemove(goOutPath, "")
 		}
 		if err != nil {
 			logger.Fatal(err)
@@ -159,29 +163,15 @@ func preparePath() {
 			jsonPath = filepath.Join(root, jsonPath)
 		}
 		if ext := filepath.Ext(jsonPath); ext != "" {
-			err = checkFileAndRemove(jsonPath)
+			err = CheckFileAndRemove(jsonPath)
 		} else {
-			err = checkDirAndRemove(jsonPath, ".json")
+			err = CheckDirAndRemove(jsonPath, ".json")
 		}
 		if err != nil {
 			logger.Fatal(err)
 		}
 		cosgo.Config.Set(FlagsNameJson, jsonPath)
 		logger.Trace("JSON输出目录:%v", jsonPath)
-	}
-	logger.Trace("====================开始检查Info输出路径====================")
-	if infoPath := cosgo.Config.GetString(FlagsNameInfo); infoPath != "" {
-		if !filepath.IsAbs(infoPath) {
-			infoPath = filepath.Join(root, infoPath)
-		}
-		if ext := filepath.Ext(infoPath); ext == "" {
-			infoPath = filepath.Join(infoPath, "info.json")
-		}
-		if err = checkFileAndRemove(infoPath); err != nil {
-			logger.Fatal(err)
-		}
-		cosgo.Config.Set(FlagsNameInfo, infoPath)
-		logger.Trace("INFO输出目录:%v", infoPath)
 	}
 
 	logger.Trace("====================开始检查忽略文件列表====================")
@@ -213,7 +203,7 @@ func preparePath() {
 	}
 }
 
-func checkDirAndRemove(path string, ext string) error {
+func CheckDirAndRemove(path string, ext string) error {
 	stat, err := os.Stat(path)
 	if err != nil {
 		return err
@@ -238,7 +228,7 @@ func checkDirAndRemove(path string, ext string) error {
 	}
 	return nil
 }
-func checkFileAndRemove(path string) error {
+func CheckFileAndRemove(path string) error {
 	stat, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -251,4 +241,17 @@ func checkFileAndRemove(path string) error {
 		return fmt.Errorf("文件错误:%v", path)
 	}
 	return os.Remove(path)
+}
+
+func WriteFile(file string, data any) {
+	b, err := json.Marshal(data)
+	if err != nil {
+		logger.Error("WriteFile:%v", err)
+		return
+	}
+
+	//file := filepath.Join(cosgo.Config.GetString(FlagsNameJson), name+".json")
+	if err = os.WriteFile(file, b, os.ModePerm); err != nil {
+		logger.Error("WriteFile:%v", err)
+	}
 }

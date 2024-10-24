@@ -7,9 +7,9 @@ import (
 type SheetType int8
 
 const (
-	SheetTypeHash SheetType = iota //默认
-	SheetTypeStruct
-	SheetTypeArray
+	SheetTypeHash  SheetType = iota //默认 map
+	SheetTypeEnum                   //struct
+	SheetTypeArray                  //array
 )
 
 const (
@@ -49,15 +49,19 @@ type enum struct {
 }
 
 type config struct {
-	enums                map[string]*enum
-	Types                map[string]SheetType //表结构
-	Proto                string               //proto 文件名
-	Package              string               //包名
-	Summary              string               //总表名,留空不生成总表
-	Parser               func(*Sheet) Parser  //解析器
-	Message              func() string        //可以加人proto全局对象
-	Language             []string             //多语言文本包含的类型
-	LanguageNewSheetName string               //多语言增量页签名
+	enums                 map[string]*enum
+	Types                 map[string]SheetType           //表结构
+	Proto                 string                         //proto 文件名
+	Package               string                         //包名
+	Parser                func(*Sheet) Parser            //解析器
+	Summary               string                         //总表名,留空不生成总表
+	Message               func() string                  //可以加人proto全局对象
+	Language              []string                       //多语言文本包含的类型
+	Outputs               []Output                       //附加输出插件
+	ArraySuffix           string                         //输出数组时，数组对象后缀
+	ProtoNameFilter       func(SheetType, string) string //过滤器
+	LanguageNewSheetName  string                         //多语言增量页签名
+	EnableGlobalDummyName bool                           //允许自定义全局对象名
 }
 
 var Config = &config{
@@ -67,6 +71,8 @@ var Config = &config{
 	Package:              "data",
 	Summary:              "data",
 	Language:             []string{"text", "lang", "language"},
+	ArraySuffix:          "Array",
+	ProtoNameFilter:      func(sheetType SheetType, s string) string { return s },
 	LanguageNewSheetName: "多语言文本",
 }
 
@@ -81,8 +87,18 @@ func (this *config) GetType(name string) SheetType {
 	return this.Types[k]
 }
 
+func (this *config) SetOutput(o Output) {
+	this.Outputs = append(this.Outputs, o)
+}
+func (this *config) SetProtoNameFilter(f func(SheetType, string) string) {
+	this.ProtoNameFilter = f
+}
 func init() {
 	Config.SetType(SheetTypeHash, "map", "hash")
 	Config.SetType(SheetTypeArray, "arr", "array", "slice")
-	Config.SetType(SheetTypeStruct, "kv", "kvs", "obj", "object", "struct")
+	Config.SetType(SheetTypeEnum, "kv", "kvs", "obj", "object", "struct")
+}
+
+type Output interface {
+	Writer(sheets []*Sheet)
 }
