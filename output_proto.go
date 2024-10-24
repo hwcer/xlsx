@@ -77,9 +77,9 @@ func buildGlobalObjects(b *strings.Builder, sheets []*Sheet) {
 	//	s.GlobalObjectsAutoName()
 	//}
 	for _, dummy := range globalObjects {
-		if dummy.Name == "" {
-			dummy.Name = globalObjects.Name(dummy)
-		}
+		//if dummy.Name == "" {
+		//	dummy.Name = globalObjects.Name(dummy)
+		//}
 		ProtoDummy(dummy, b)
 	}
 

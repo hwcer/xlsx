@@ -13,53 +13,69 @@ type GlobalDummy map[string]*Dummy
 var ignoreFiles []string
 var globalObjects = GlobalDummy{}
 
-func (this GlobalDummy) Name(d *Dummy) string {
-	label := d.Compile()
-	if v, ok := this[label]; ok && v.Name != "" {
-		return v.Name
-	} else {
-		return label
-	}
-}
+//func (this GlobalDummy) Name(d *Dummy) string {
+//	label := d.Compile()
+//	if v, ok := this[label]; ok && v.Name != "" {
+//		return v.Name
+//	} else {
+//		return label
+//	}
+//}
 
 // Exist 查找名字是否存在
-func (this GlobalDummy) Exist(d *Dummy) *Dummy {
-	if d.Name == "" {
-		return nil
-	}
-	for _, v := range this {
-		if d.Name == v.Name && d.Compile() != v.Compile() {
-			return v
-		}
-	}
-	return nil
-}
+//func (this GlobalDummy) Exist(d *Dummy) *Dummy {
+//	if d.Name == "" {
+//		return nil
+//	}
+//	for _, v := range this {
+//		if d.Name == v.Name && d.Compile() != v.Compile() {
+//			return v
+//		}
+//	}
+//	return nil
+//}
 
 func (this GlobalDummy) Insert(sheet *Sheet, d *Dummy, must ...bool) {
 	label := d.Compile()
 	if !Config.EnableGlobalDummyName && (len(must) == 0 || !must[0]) {
-		d.Name = label
+		d.Name = ""
 	}
-	if e := globalObjects.Exist(d); e != nil {
-		logger.Trace("子对象名重复并且属性不一样:%v.%v  Label:%v", sheet.ProtoName, d.Name, d.Compile())
-		d.Name = label
-	}
-	if d.Name == "" {
-		d.Name = Config.ProtoNameFilter(SheetTypeHash, label)
+	if d.Name != "" {
+		if v, ok := this[d.Name]; ok {
+			if v.Compile() != label {
+				logger.Trace("对象名重复:%v.%v  Label:%v  Target:%v", sheet.ProtoName, d.Name, label, v.Compile())
+				d.Name = label
+			}
+		}
+		this[d.Name] = d
 	} else {
-		d.Name = Config.ProtoNameFilter(SheetTypeHash, d.Name)
-	}
-	v, ok := this[label]
-	if !ok {
-		this[label] = d
-		return
+		d.Name = label
+		if _, ok := this[label]; !ok {
+			this[label] = d
+		}
 	}
 
-	if v.Name == "" {
-		v.Name = d.Name
-	} else if d.Name != "" && v.Name != d.Name {
-		logger.Trace("冗余的对象名称%v,建议修改成%v", d.Name, v.Name)
-	}
+	//if !Config.EnableGlobalDummyName && (len(must) == 0 || !must[0]) {
+	//	d.Name = label
+	//}
+	//if e := globalObjects.Exist(d); e != nil {
+	//	logger.Trace("子对象名重复并且属性不一样:%v.%v  Label:%v", sheet.ProtoName, d.Name, d.Compile())
+	//	d.Name = label
+	//}
+	//if d.Name == "" {
+	//	d.Name = label
+	//}
+	//if v, ok := this[label]; !ok {
+	//	this[label] = d
+	//} else if v.Name == "" {
+	//	v.Name = d.Name
+	//}
+	//
+	//if v.Name == "" {
+	//	v.Name = d.Name
+	//} else if d.Name != "" && v.Name != d.Name {
+	//	logger.Trace("冗余的对象名称%v,建议修改成%v", d.Name, v.Name)
+	//}
 }
 
 type Sheet struct {
@@ -294,9 +310,9 @@ func (this *Sheet) Language(r map[string]string, types map[string]bool) {
 func (this *Sheet) GlobalObjectsProtoName() {
 	for _, field := range this.Fields {
 		if len(field.Dummy) > 0 {
-			//t := field.Type()
-			dummy := field.Dummy[0]
-			globalObjects.Insert(this, dummy)
+			for _, dummy := range field.Dummy {
+				globalObjects.Insert(this, dummy)
+			}
 		}
 	}
 }

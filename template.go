@@ -13,8 +13,9 @@ const TemplateTitle = `syntax = "proto3";
 option go_package = "./;<% .Package %>";
 `
 
-const TemplateDummy = `message <%.Name%>{ <%range .Fields%>
-	<%DummyRequire .%> <%.Name%> = <%.ProtoIndex%>;<%end%>
+const TemplateDummy = `//sign:<% .Label%>
+message <%.Name%>{ <%range .Fields%>
+	<%DummyRequire .%> <%.Name%> = <%.ProtoIndex%>; <%end%>
 }
 `
 

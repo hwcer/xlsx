@@ -141,7 +141,8 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 	}
 	//ARRAY
 	if sheet.SheetType == SheetTypeArray {
-		dummy := NewDummy(sheet.ProtoName)
+		name := Config.ProtoNameFilter(SheetTypeHash, sheet.ProtoName)
+		dummy := NewDummy(name)
 		for _, field := range sheet.Fields {
 			if len(field.Index) > 0 {
 				_ = dummy.Add(field.Name, field.ProtoType, field.Index[0])
