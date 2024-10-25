@@ -75,25 +75,40 @@ func (this *Field) getProtoValue(row *xlsx.Row, handle ProtoBuffParse) (any, err
 	}
 	var vs []string
 	for _, i := range index {
-		if c := row.GetCell(i); c != nil {
+		if c := row.GetCell(i); c != nil && c.Value != "" {
 			vs = append(vs, c.Value)
 		}
 	}
-	return handle.Value(vs...)
+	if len(vs) > 0 {
+		return handle.Value(vs...)
+	} else if handle.Repeated() {
+		return []any{}, nil //空数组
+	} else {
+		return handle.Value("") //填充零值
+	}
 }
 
 // getDummyValue 内置对象
 func (this *Field) getDummyValue(row *xlsx.Row, handle ProtoBuffParse) (any, error) {
-	if !handle.Repeated() {
-		return this.Dummy[0].Value(row)
-	}
 	var rs []any
 	for _, c := range this.Dummy {
 		if v, e := c.Value(row); e != nil {
 			return nil, e
-		} else {
+		} else if v != nil {
 			rs = append(rs, v)
 		}
 	}
-	return rs, nil
+	if len(rs) > 0 {
+		if handle.Repeated() {
+			return rs, nil
+		} else {
+			return rs[0], nil
+		}
+	} else {
+		if handle.Repeated() {
+			return []any{}, nil
+		} else {
+			return nil, nil
+		}
+	}
 }

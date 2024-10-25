@@ -113,8 +113,8 @@ func (this *ArrayFromSplit) Type() string {
 
 func (this *ArrayFromSplit) Value(vs ...string) (any, error) {
 	var r []any
-	if vs[0] == "" {
-		return r, nil
+	if len(vs) == 0 || vs[0] == "" {
+		return []any{}, nil
 	}
 	for _, v := range strings.Split(vs[0], ",") {
 		if i, e := this.parse(v); e != nil {
@@ -142,11 +142,11 @@ func (this *ArrayFromMultipleCell) Type() string {
 
 func (this *ArrayFromMultipleCell) Value(vs ...string) (any, error) {
 	var r []any
+	if len(vs) == 0 {
+		return []any{}, nil
+	}
 	parser := cosxls.Require(this.t)
 	for _, i := range vs {
-		if i == "" {
-			continue
-		}
 		if v, e := parser.Value(i); e != nil {
 			return nil, e
 		} else {

@@ -76,14 +76,20 @@ func (this *Dummy) Value(row *xlsx.Row) (map[string]any, error) {
 		cell := row.GetCell(field.SheetIndex)
 		handle := Require(field.ProtoType)
 		if cell != nil && handle != nil {
-			if v, err := handle.Value(cell.Value); err != nil {
-				return nil, err
-			} else {
-				r[field.Name] = v
+			if cell.Value != "" {
+				if v, err := handle.Value(cell.Value); err != nil {
+					return nil, err
+				} else if v != nil {
+					r[field.Name] = v
+				}
 			}
 		}
 	}
-	return r, nil
+	if len(r) > 0 {
+		return r, nil
+	} else {
+		return nil, nil
+	}
 }
 
 func (this *Dummy) less(i, j int) bool {

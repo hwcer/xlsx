@@ -86,7 +86,10 @@ func (this *ProtoBuffParseDefault) Type() string {
 }
 
 func (this *ProtoBuffParseDefault) Value(vs ...string) (r any, err error) {
-	v := vs[0]
+	var v string
+	if len(vs) > 0 {
+		v = vs[0]
+	}
 	switch this.pt {
 	case ProtoBuffTypeInt32, ProtoBuffTypeInt64:
 		if v == "" {
