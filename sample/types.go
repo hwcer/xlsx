@@ -7,25 +7,28 @@ import (
 	"strings"
 )
 
+// 扩展类型
 const (
 	FieldTypeObject           cosxls.ProtoBuffType = "Object"
 	FieldTypeArrayInt                              = "ArrInt"
+	FieldTypeArrayInt32                            = "ArrInt32"
 	FieldTypeArrayInt64                            = "ArrInt64"
 	FieldTypeArrayString                           = "ArrString"
 	FieldTypeArrayObject                           = "ArrObject"
-	FieldTypeArrayIntSplit                         = "[]int" //单元格切割成数组
-	FieldTypeArrayInt32Split                       = "[]int32"
-	FieldTypeArrayInt64Split                       = "[]int64"
-	FieldTypeArrayStringSplit                      = "[]string"
+	FieldTypeArrayIntSplit                         = "[]int"    //单元格切割成数组
+	FieldTypeArrayInt32Split                       = "[]int32"  //单元格切割成数组
+	FieldTypeArrayInt64Split                       = "[]int64"  //单元格切割成数组
+	FieldTypeArrayStringSplit                      = "[]string" //单元格切割成数组
 )
 
-var multiple = map[cosxls.ProtoBuffType]bool{}
+var multiple = map[cosxls.ProtoBuffType]struct{}{}
 
 func init() {
 	cosxls.Register(FieldTypeObject, &Object{})
-	cosxls.Register(FieldTypeArrayInt, &ArrayInt{})
-	cosxls.Register(FieldTypeArrayInt64, &ArrayInt64{})
-	cosxls.Register(FieldTypeArrayString, &ArrayString{})
+	cosxls.Register(FieldTypeArrayInt, &ArrayFromMultipleCell{t: cosxls.ProtoBuffTypeInt32})
+	cosxls.Register(FieldTypeArrayInt32, &ArrayFromMultipleCell{t: cosxls.ProtoBuffTypeInt32})
+	cosxls.Register(FieldTypeArrayInt64, &ArrayFromMultipleCell{t: cosxls.ProtoBuffTypeInt64})
+	cosxls.Register(FieldTypeArrayString, &ArrayFromMultipleCell{t: cosxls.ProtoBuffTypeString})
 	cosxls.Register(FieldTypeArrayObject, &ArrayObject{})
 
 	cosxls.Register(FieldTypeArrayIntSplit, &ArrayFromSplit{t: cosxls.ProtoBuffTypeInt32})
@@ -33,25 +36,22 @@ func init() {
 	cosxls.Register(FieldTypeArrayInt64Split, &ArrayFromSplit{t: cosxls.ProtoBuffTypeInt64})
 	cosxls.Register(FieldTypeArrayStringSplit, &ArrayFromSplit{t: cosxls.ProtoBuffTypeString})
 
-	multiple[FieldTypeObject] = true
-	multiple[FieldTypeArrayInt] = true
-	multiple[FieldTypeArrayInt64] = true
-	multiple[FieldTypeArrayString] = true
-	multiple[FieldTypeArrayObject] = true
-	//multiple[FieldTypeArrayIntSplit] = false
-	//multiple[FieldTypeArrayInt32Split] = false
-	//multiple[FieldTypeArrayInt64Split] = false
-	//multiple[FieldTypeArrayStringSplit] = false
+	SetMultipleType(FieldTypeObject, FieldTypeArrayInt, FieldTypeArrayInt64, FieldTypeArrayString, FieldTypeArrayObject)
 }
 
 // IsMultipleType 取基础值类型
-func IsMultipleType(k string) bool {
-	t := cosxls.ProtoBuffType(strings.ToLower(k))
-	if p := cosxls.Require(t); p != nil {
-		return false
-	}
-	return multiple[t]
+func IsMultipleType(k cosxls.ProtoBuffType) bool {
+	_, ok := multiple[k]
+	return ok
 }
+
+func SetMultipleType(keys ...cosxls.ProtoBuffType) {
+	for _, k := range keys {
+		multiple[k] = struct{}{}
+	}
+}
+
+// -----------------------Object------------------------------
 
 type Object struct {
 }
@@ -65,6 +65,22 @@ func (this *Object) Value(...string) (any, error) {
 }
 func (this *Object) Repeated() bool {
 	return false
+}
+
+//-----------------------ArrayObject------------------------------
+
+type ArrayObject struct {
+}
+
+func (this *ArrayObject) Type() string {
+	return string(FieldTypeArrayObject)
+}
+
+func (this *ArrayObject) Value(...string) (any, error) {
+	return nil, fmt.Errorf("对象无法直接获取值")
+}
+func (this *ArrayObject) Repeated() bool {
+	return true
 }
 
 //-----------------------ArrayFromSplit------------------------------
@@ -114,19 +130,23 @@ func (this *ArrayFromSplit) Repeated() bool {
 	return true
 }
 
-//-----------------------ArrayInt------------------------------
+//-----------------------ArrayFromMultipleCell------------------------------
 
-type ArrayInt struct {
+type ArrayFromMultipleCell struct {
+	t cosxls.ProtoBuffType
 }
 
-func (this *ArrayInt) Type() string {
-	return "int32"
+func (this *ArrayFromMultipleCell) Type() string {
+	return string(this.t)
 }
 
-func (this *ArrayInt) Value(vs ...string) (any, error) {
+func (this *ArrayFromMultipleCell) Value(vs ...string) (any, error) {
 	var r []any
-	parser := cosxls.Require(cosxls.ProtoBuffTypeInt64)
+	parser := cosxls.Require(this.t)
 	for _, i := range vs {
+		if i == "" {
+			continue
+		}
 		if v, e := parser.Value(i); e != nil {
 			return nil, e
 		} else {
@@ -136,65 +156,6 @@ func (this *ArrayInt) Value(vs ...string) (any, error) {
 	return r, nil
 }
 
-func (this *ArrayInt) Repeated() bool {
-	return true
-}
-
-//-----------------------ArrayInt------------------------------
-
-type ArrayInt64 struct {
-}
-
-func (this *ArrayInt64) Type() string {
-	return "int64"
-}
-
-func (this *ArrayInt64) Value(vs ...string) (any, error) {
-	var r []any
-	parser := cosxls.Require(cosxls.ProtoBuffTypeInt32)
-	for _, i := range vs {
-		if v, e := parser.Value(i); e != nil {
-			return nil, e
-		} else {
-			r = append(r, v)
-		}
-	}
-	return r, nil
-}
-
-func (this *ArrayInt64) Repeated() bool {
-	return true
-}
-
-//-----------------------ArrayString------------------------------
-
-type ArrayString struct {
-}
-
-func (this *ArrayString) Type() string {
-	return "string"
-}
-
-func (this *ArrayString) Value(vs ...string) (any, error) {
-	return vs, nil
-}
-
-func (this *ArrayString) Repeated() bool {
-	return true
-}
-
-//-----------------------ArrayObject------------------------------
-
-type ArrayObject struct {
-}
-
-func (this *ArrayObject) Type() string {
-	return string(FieldTypeArrayObject)
-}
-
-func (this *ArrayObject) Value(...string) (any, error) {
-	return nil, fmt.Errorf("对象无法直接获取值")
-}
-func (this *ArrayObject) Repeated() bool {
+func (this *ArrayFromMultipleCell) Repeated() bool {
 	return true
 }

@@ -165,7 +165,7 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, cell *xlsx.Cell, index 
 		this.Name = name
 		this.ProtoType = protoType
 	}
-	if !multiple[this.ProtoType] {
+	if !IsMultipleType(this.ProtoType) {
 		return true
 	}
 	return this.ending(cell, index, suffix, fieldType)
