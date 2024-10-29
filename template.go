@@ -88,7 +88,7 @@ func TemplateSummaryType(sheet *Sheet) (r string) {
 	case SheetTypeEnum:
 		return fmt.Sprintf("%v %v", sheet.ProtoName, sheet.ProtoName)
 	case SheetTypeArray:
-		return fmt.Sprintf("map<int32,%v> %v", sheet.ProtoName, sheet.DummyName)
+		return fmt.Sprintf("map<int32,%v> %v", sheet.ProtoName, sheet.ProtoName)
 		//return fmt.Sprintf("repeated %v", sheet.DummyName)
 	default:
 		//t = fmt.Sprintf("%v%v", sheet.ProtoName, Config.Suffix)
