@@ -19,18 +19,27 @@ message <%.Name%>{ <%range .Fields%>
 }
 `
 
+//const TemplateMessage = `
+//<%- range .Sheets%>
+//<%- if IsArray .SheetType %>
+//message <%.ProtoName%>{
+//	repeated <%.DummyName%> Coll = 1;
+//}
+//<%- else %>
+//message <%.ProtoName%>{
+//	<%- range .Fields %>
+//	<%ProtoRequire .%> <%.Name%> = <%.ProtoIndex%>; //<% .ProtoDesc%><%end%>
+//}
+//<%- end%>
+//<%- end%>
+//`
+
 const TemplateMessage = `
 <%- range .Sheets%>
-<%- if IsArray .SheetType %>
-message <%.ProtoName%>{
-	repeated <%.DummyName%> Coll = 1;
-}
-<%- else %>
 message <%.ProtoName%>{
 	<%- range .Fields %>
 	<%ProtoRequire .%> <%.Name%> = <%.ProtoIndex%>; //<% .ProtoDesc%><%end%>
 }
-<%- end%>
 <%- end%>
 `
 
@@ -46,7 +55,7 @@ message <%.Name%>{
 func init() {
 	tpl = template.New("")
 	tpl.Funcs(template.FuncMap{
-		"IsArray":      TemplateIsArray,
+		//"IsArray":      TemplateIsArray,
 		"SummaryType":  TemplateSummaryType,
 		"ProtoRequire": TemplateProtoRequire,
 		"DummyRequire": TemplateDummyRequire,
@@ -54,9 +63,9 @@ func init() {
 	tpl.Delims("<%", "%>")
 }
 
-func TemplateIsArray(t SheetType) bool {
-	return t == SheetTypeArray
-}
+//func TemplateIsArray(t SheetType) bool {
+//	return t == SheetTypeArray
+//}
 
 func TemplateProtoRequire(field *Field) string {
 	handle := Require(field.ProtoType)
@@ -87,9 +96,9 @@ func TemplateSummaryType(sheet *Sheet) (r string) {
 	switch sheet.SheetType {
 	case SheetTypeEnum:
 		return fmt.Sprintf("%v %v", sheet.ProtoName, sheet.ProtoName)
-	case SheetTypeArray:
-		return fmt.Sprintf("map<int32,%v> %v", sheet.ProtoName, sheet.ProtoName)
-		//return fmt.Sprintf("repeated %v", sheet.DummyName)
+	//case SheetTypeArray:
+	//	return fmt.Sprintf("map<int32,%v> %v", sheet.ProtoName, sheet.ProtoName)
+	//return fmt.Sprintf("repeated %v", sheet.DummyName)
 	default:
 		//t = fmt.Sprintf("%v%v", sheet.ProtoName, Config.Suffix)
 		return fmt.Sprintf("map<%v,%v> %v", primary.ProtoType, sheet.ProtoName, sheet.ProtoName)

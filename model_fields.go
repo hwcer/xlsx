@@ -19,6 +19,7 @@ type Field struct {
 	ProtoType  ProtoBuffType     //PROTO字段类型,和SheetType有一定的关联性
 	ProtoIndex int               //proto index 自动生产
 	Branch     map[string]*Field //版本分支,仅影响数据，不影响结构,不支持子对象
+	tag        int               //kv 模式下第几列产生的
 }
 
 func (this *Field) Type() string {

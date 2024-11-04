@@ -2,8 +2,10 @@ package sample
 
 import (
 	"fmt"
+	"github.com/hwcer/logger"
 	cosxls "github.com/hwcer/xlsx"
 	"github.com/tealeg/xlsx/v3"
+	"strconv"
 	"strings"
 )
 
@@ -15,6 +17,19 @@ type Parser struct {
 	sheet *cosxls.Sheet
 }
 
+func s2a(s string) [4]int {
+	r := [4]int{-1, -1, -1}
+	arr := strings.Split(s, ",")
+	for i, v := range arr {
+		if i < 4 {
+			n, _ := strconv.Atoi(v)
+			r[i] = n
+		}
+	}
+	return r
+}
+
+// kv:name:2,0
 func (this *Parser) Verify() (skip int, name string, ok bool) {
 	skip = 4
 	//isok
@@ -26,7 +41,27 @@ func (this *Parser) Verify() (skip int, name string, ok bool) {
 	cell := r.GetCell(0)
 	ok = cell != nil && cell.Value != ""
 	//name
-	name = cell.Value
+	if ok {
+		name = cell.Value
+	}
+	//attach
+	m := this.sheet.MaxCol
+	var err error
+	for i := 1; i <= m; i++ {
+		if cell = r.GetCell(i); cell != nil && cell.Value != "" {
+			arr := strings.Split(cell.Value, ":")
+			skv := strings.ToLower(arr[0])
+			if skv == "kv" && len(arr) == 3 {
+				err = this.sheet.AddEnum(arr[1], s2a(arr[2]))
+			} else if skv == "kv" {
+				err = fmt.Errorf("attach error,sheet:%v,value:%v", this.sheet.Name, cell.Value)
+			}
+			if err != nil {
+				logger.Fatal(err)
+			}
+
+		}
+	}
 	return
 }
 func (this *Parser) Fields() (r []*cosxls.Field) {

@@ -7,9 +7,9 @@ import (
 type SheetType int8
 
 const (
-	SheetTypeHash  SheetType = iota //默认 map
-	SheetTypeEnum                   //struct
-	SheetTypeArray                  //array
+	SheetTypeHash SheetType = iota //默认 map
+	SheetTypeEnum                  //struct
+	//SheetTypeArray                  //array
 )
 
 const (
@@ -26,9 +26,9 @@ type Parser interface {
 	Fields() []*Field                         //表格字段
 }
 
-type ParserSheetType interface {
-	SheetType() (SheetType, [4]int)
-}
+//type ParserSheetType interface {
+//	SheetType() (SheetType, [4]int)
+//}
 
 // ParserNewStruct 是否生成一个新对象
 // name 如果与原始Sheet重名,将覆盖
@@ -95,7 +95,7 @@ func (this *config) SetProtoNameFilter(f func(SheetType, string) string) {
 }
 func init() {
 	Config.SetType(SheetTypeHash, "map", "hash")
-	Config.SetType(SheetTypeArray, "arr", "array", "slice")
+	//Config.SetType(SheetTypeArray, "arr", "array", "slice")
 	Config.SetType(SheetTypeEnum, "kv", "kvs", "obj", "object", "struct")
 }
 

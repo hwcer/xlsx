@@ -64,7 +64,7 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 	//countArr := []int{1, 101, 201, 301}
 	maxRow := v.MaxRow
 	logger.Trace("----开始读取表格[%v],共有%v行", v.Name, maxRow)
-	sheet := &Sheet{Sheet: v}
+	sheet := &Sheet{Sheet: v, SheetType: SheetTypeHash}
 	sheet.Name = Convert(sheet.Name)
 	sheet.Parser = Config.Parser(sheet)
 	var ok bool
@@ -80,10 +80,10 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 		return nil
 	}
 
-	var pt ParserSheetType
-	if pt, ok = sheet.Parser.(ParserSheetType); ok {
-		sheet.SheetType, sheet.SheetIndex = pt.SheetType()
-	}
+	//var pt ParserSheetType
+	//if pt, ok = sheet.Parser.(ParserSheetType); ok {
+	//	sheet.SheetType, sheet.SheetIndex = pt.SheetType()
+	//}
 
 	fields := sheet.Parser.Fields()
 	if len(fields) == 0 {
@@ -132,42 +132,57 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 			sheet.Fields = append(sheet.Fields, field)
 			fieldsMap[field.Name] = field
 		}
-
 	}
 
 	//sheet.Fields = fields
-	if sheet.SheetType == SheetTypeEnum {
-		sheet.reParseObjField()
-	}
-	//ARRAY
-	if sheet.SheetType == SheetTypeArray {
-		name := Config.ProtoNameFilter(SheetTypeHash, sheet.ProtoName)
-		dummy := NewDummy(name)
-		for _, field := range sheet.Fields {
-			if len(field.Index) > 0 {
-				_ = dummy.Add(field.Name, field.ProtoType, field.Index[0])
-			}
-		}
-		globalObjects.Insert(sheet, dummy, true)
-		sheet.DummyName = dummy.Name
-		sheet.ProtoName = sheet.ProtoName + Config.ArraySuffix
-	}
-
-	sheet.ProtoName = Config.ProtoNameFilter(sheet.SheetType, sheet.ProtoName)
-
+	//if sheet.SheetType == SheetTypeEnum {
+	//	sheet.reParseEnum()
+	//}
+	////ARRAY
+	//if sheet.SheetType == SheetTypeArray {
+	//	name := Config.ProtoNameFilter(SheetTypeHash, sheet.ProtoName)
+	//	dummy := NewDummy(name)
+	//	for _, field := range sheet.Fields {
+	//		if len(field.Index) > 0 {
+	//			_ = dummy.Add(field.Name, field.ProtoType, field.Index[0])
+	//		}
+	//	}
+	//	globalObjects.Insert(sheet, dummy, true)
+	//	sheet.DummyName = dummy.Name
+	//	sheet.ProtoName = sheet.ProtoName + Config.ArraySuffix
+	//}
+	protoName := sheet.ProtoName
 	if len(sheet.Fields) > 0 {
-		sheets[sheet.ProtoName] = sheet
+		sheet.ProtoName = Config.ProtoNameFilter(sheet.SheetType, sheet.ProtoName)
+		sheets[protoName] = sheet
 	}
-	//格外的Struct
-	if ev := Config.enums[sheet.ProtoName]; ev != nil {
-		newSheet := *sheet
-		newSheet.ProtoName = ev.Name
-		newSheet.SheetType = SheetTypeEnum
-		newSheet.SheetIndex = ev.Index
-		newSheet.reParseObjField()
-		if len(newSheet.Fields) > 0 {
-			sheets[newSheet.ProtoName] = &newSheet
+	for _, s := range sheet.sheetAttach {
+		switch s.t {
+		case SheetTypeEnum:
+			if newSheet := sheet.reParseEnum(s); newSheet != nil && len(newSheet.Fields) > 0 {
+				newSheet.ProtoName = Config.ProtoNameFilter(newSheet.SheetType, newSheet.ProtoName)
+				sheets[s.k] = newSheet
+			}
+		//case SheetTypeArray:
+		//	if newSheet := sheet.reParseArray(s); newSheet != nil && len(newSheet.Fields) > 0 {
+		//		newSheet.ProtoName = Config.ProtoNameFilter(newSheet.SheetType, newSheet.ProtoName)
+		//		sheets[s.k] = newSheet
+		//	}
+		default:
+
 		}
 	}
+
+	//格外的Struct
+	//if ev := Config.enums[sheet.ProtoName]; ev != nil {
+	//	newSheet := *sheet
+	//	newSheet.ProtoName = ev.Name
+	//	newSheet.SheetType = SheetTypeEnum
+	//	newSheet.SheetIndex = ev.Index
+	//	newSheet.reParseEnum()
+	//	if len(newSheet.Fields) > 0 {
+	//		sheets[newSheet.ProtoName] = &newSheet
+	//	}
+	//}
 	return
 }

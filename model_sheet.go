@@ -80,32 +80,93 @@ func (this GlobalDummy) Insert(sheet *Sheet, d *Dummy, must ...bool) {
 
 type Sheet struct {
 	*xlsx.Sheet
-	Skip       int       //数据表中数据部分需要跳过的行数
-	Parser     Parser    //解析器
-	Fields     []*Field  //字段列表
-	FileName   string    //文件名
-	ProtoName  string    // protoName 是pb.go中文件的名字，
-	ProtoIndex int       //总表编号
-	SheetType  SheetType //输出类型,kv arr map
-	SheetIndex [4]int    //kv 模式下的字段
-	DummyName  string    // array 模式下子对象名称
+	Skip         int                     //数据表中数据部分需要跳过的行数
+	Parser       Parser                  //解析器
+	Fields       []*Field                //字段列表
+	FileName     string                  //文件名
+	ProtoName    string                  // protoName 是pb.go中文件的名字，
+	SheetType    SheetType               //输出类型,kv arr map
+	ProtoIndex   int                     //总表编号
+	sheetAttach  map[string]*SheetAttach //枚举和索引
+	sheetIndexes [4]int                  //kv 索引
+}
+
+type SheetAttach struct {
+	t SheetType
+	k string
+	v [4]int
 }
 
 //const RowId = "id"
 
-type rowArr struct {
-	Coll []any
+//type rowArr struct {
+//	Coll []any
+//}
+
+func (this *Sheet) Clone() *Sheet {
+	r := *this
+	r.Fields = nil
+	r.sheetAttach = nil
+	return &r
+}
+func (this *Sheet) SearchByTag(i int) *Field {
+	for _, f := range this.Fields {
+		if f.tag == i {
+			return f
+		}
+	}
+	return nil
 }
 
+func (this *Sheet) SearchByIndex(i int) *Field {
+	for _, f := range this.Fields {
+		for _, k := range f.Index {
+			if k == i {
+				return f
+			}
+		}
+	}
+	return nil
+}
+
+// AddEnum 创建枚举
+func (this *Sheet) AddEnum(k string, v [4]int) error {
+	if this.sheetAttach == nil {
+		this.sheetAttach = map[string]*SheetAttach{}
+	}
+	k = TrimProtoName(k)
+	if _, ok := this.sheetAttach[k]; ok {
+		return fmt.Errorf("attach已经存在,sheet:%v,k:%v", this.ProtoName, k)
+	}
+
+	this.sheetAttach[k] = &SheetAttach{k: k, v: v, t: SheetTypeEnum}
+	return nil
+}
+
+// AddIndex 创建索引 [2]int{"索引字段","索引值"}    map[i][]int32{id,id,id}
+//func (this *Sheet) AddIndex(k string, v [2]int) error {
+//	if _, ok := this.sheetAttach[k]; ok {
+//		return fmt.Errorf("attach已经存在,sheet:%v,k:%v", this.ProtoName, k)
+//	}
+//	av := [4]int{v[0], v[1], -1, -1}
+//	this.sheetAttach[k] = &SheetAttach{t: SheetTypeArray, k: k, v: av}
+//	return nil
+//}
+
 // 重新解析obj的字段
-func (this *Sheet) reParseObjField() {
+func (this *Sheet) reParseEnum(attach *SheetAttach) *Sheet {
 	maxRow := this.MaxRow
 	var index int
 	var fields []*Field
-	indexes := this.SheetIndex
+	//indexes := this.SheetIndex
 	//if p, ok := this.Parser.(ParserStructType); ok {
 	//	indexes = p.StructType(this.ProtoName)
 	//}
+	newSheet := this.Clone()
+	newSheet.ProtoName = attach.k
+	newSheet.SheetType = SheetTypeEnum
+	newSheet.sheetIndexes = attach.v
+	indexes := attach.v
 	for i := this.Skip; i <= maxRow; i++ {
 		row, err := this.Sheet.Row(i)
 		if err != nil {
@@ -118,6 +179,7 @@ func (this *Sheet) reParseObjField() {
 
 		index++
 		field := &Field{}
+		field.tag = i
 		field.Name = key
 		field.Index = []int{indexes[1]}
 		//field.ProtoName = key
@@ -140,8 +202,27 @@ func (this *Sheet) reParseObjField() {
 		}
 		fields = append(fields, field)
 	}
-	this.Fields = fields
+	newSheet.Fields = fields
+	return newSheet
 }
+
+// 重新解析obj的字段
+//func (this *Sheet) reParseArray(attach *SheetAttach) *Sheet {
+//	newSheet := this.Clone()
+//	newSheet.SheetType = SheetTypeArray
+//	newSheet.ProtoName = attach.k
+//	newSheet.sheetIndexes = attach.v
+//	for i := 0; i <= 1; i++ {
+//		k := attach.v[i]
+//		if f := this.SearchByIndex(k); f != nil {
+//			newSheet.Fields = append(newSheet.Fields, f)
+//		} else {
+//			logger.Alert("reParseArray coll not exist,sheet:%v,name:%v,index:%v", this.ProtoName, attach.k, attach.v)
+//			return nil
+//		}
+//	}
+//	return newSheet
+//}
 
 func (this *Sheet) GetField(name string) *Field {
 	for _, v := range this.Fields {
@@ -153,11 +234,10 @@ func (this *Sheet) GetField(name string) *Field {
 }
 
 func (this *Sheet) Values() (any, []error) {
-	if this.SheetType == SheetTypeEnum {
+	switch this.SheetType {
+	case SheetTypeEnum:
 		return this.kv()
-	} else if this.SheetType == SheetTypeArray {
-		return this.array()
-	} else {
+	default:
 		return this.hash()
 	}
 }
@@ -166,9 +246,9 @@ func (this *Sheet) Values() (any, []error) {
 func (this *Sheet) kv() (any, []error) {
 	r := map[string]any{}
 	var errs []error
-	var emptyCell []int
+	//var emptyCell []int
 	maxRow := this.Sheet.MaxRow
-	indexes := this.SheetIndex
+	//indexes := this.sheetIndexes
 	//if p, ok := this.Parser.(ParserStructType); ok {
 	//	indexes = p.StructType(this.ProtoName)
 	//}
@@ -177,25 +257,18 @@ func (this *Sheet) kv() (any, []error) {
 		if err != nil {
 			logger.Trace("%v,err:%v", i, err)
 		}
-
-		id := strings.TrimSpace(row.GetCell(indexes[0]).Value)
-		if utils.Empty(id) {
-			emptyCell = append(emptyCell, row.GetCoordinate()+1)
-			continue
-		}
-		if field := this.GetField(id); field != nil {
+		if field := this.SearchByTag(i); field != nil {
 			var data any
 			if data, err = field.Value(row); err == nil {
-				r[id] = data
+				r[field.Name] = data
 			} else {
 				errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
 			}
 		}
 	}
-
-	if len(emptyCell) > 10 {
-		logger.Trace("%v共%v行ID为空已经忽略", this.ProtoName, len(emptyCell))
-	}
+	//if len(emptyCell) > 10 {
+	//	logger.Trace("%v共%v行ID为空已经忽略", this.ProtoName, len(emptyCell))
+	//}
 	return r, errs
 }
 
@@ -230,40 +303,41 @@ func (this *Sheet) hash() (any, []error) {
 }
 
 func (this *Sheet) array() (any, []error) {
-	r := map[string]*rowArr{}
-	var errs []error
-	var emptyCell []int
-	maxRow := this.Sheet.MaxRow
-	for i := this.Skip; i <= maxRow; i++ {
-		row, err := this.Sheet.Row(i)
-		if err != nil {
-			logger.Trace("%v,err:%v", i, err)
-		}
-
-		id := strings.TrimSpace(row.GetCell(0).Value)
-		if utils.Empty(id) {
-			emptyCell = append(emptyCell, row.GetCoordinate()+1)
-			continue
-		}
-		//MAP ARRAY
-		val, err := this.Value(row)
-		if err != nil {
-			errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
-			continue
-		}
-		if d, ok := r[id]; ok {
-			d.Coll = append(d.Coll, val)
-		} else {
-			d = &rowArr{}
-			d.Coll = append(d.Coll, val)
-			r[id] = d
-		}
-	}
-
-	if len(emptyCell) > 10 {
-		logger.Trace("%v共%v行ID为空已经忽略:%v", this.ProtoName, len(emptyCell), emptyCell)
-	}
-	return r, errs
+	return nil, nil
+	//r := map[string]*rowArr{}
+	//var errs []error
+	//var emptyCell []int
+	//maxRow := this.Sheet.MaxRow
+	//for i := this.Skip; i <= maxRow; i++ {
+	//	row, err := this.Sheet.Row(i)
+	//	if err != nil {
+	//		logger.Trace("%v,err:%v", i, err)
+	//	}
+	//
+	//	id := strings.TrimSpace(row.GetCell(0).Value)
+	//	if utils.Empty(id) {
+	//		emptyCell = append(emptyCell, row.GetCoordinate()+1)
+	//		continue
+	//	}
+	//	//MAP ARRAY
+	//	val, err := this.Value(row)
+	//	if err != nil {
+	//		errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
+	//		continue
+	//	}
+	//	if d, ok := r[id]; ok {
+	//		d.Coll = append(d.Coll, val)
+	//	} else {
+	//		d = &rowArr{}
+	//		d.Coll = append(d.Coll, val)
+	//		r[id] = d
+	//	}
+	//}
+	//
+	//if len(emptyCell) > 10 {
+	//	logger.Trace("%v共%v行ID为空已经忽略:%v", this.ProtoName, len(emptyCell), emptyCell)
+	//}
+	//return r, errs
 }
 
 func (this *Sheet) Value(row *xlsx.Row) (map[string]any, error) {
