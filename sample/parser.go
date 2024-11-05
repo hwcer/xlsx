@@ -50,16 +50,19 @@ func (this *Parser) Verify() (skip int, name string, ok bool) {
 	for i := 1; i <= m; i++ {
 		if cell = r.GetCell(i); cell != nil && cell.Value != "" {
 			arr := strings.Split(cell.Value, ":")
-			skv := strings.ToLower(arr[0])
-			if skv == "kv" && len(arr) == 3 {
-				err = this.sheet.AddEnum(arr[1], s2a(arr[2]))
-			} else if skv == "kv" {
-				err = fmt.Errorf("attach error,sheet:%v,value:%v", this.sheet.Name, cell.Value)
+			if strings.ToLower(arr[0]) == "kv" {
+				if len(arr) == 1 {
+					//默认kv 模式
+					err = this.sheet.AddEnum(name, [4]int{0, 1, 2, 3})
+				} else if len(arr) == 3 {
+					err = this.sheet.AddEnum(arr[1], s2a(arr[2]))
+				} else {
+					err = fmt.Errorf("attach error,sheet:%v,value:%v", this.sheet.Name, cell.Value)
+				}
 			}
 			if err != nil {
 				logger.Fatal(err)
 			}
-
 		}
 	}
 	return
