@@ -68,10 +68,10 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 	sheet.Name = Convert(sheet.Name)
 	sheet.Parser = Config.Parser(sheet)
 	var ok bool
-	if sheet.Skip, sheet.ProtoName, ok = sheet.Parser.Verify(); !ok {
+	if sheet.Skip, sheet.SheetName, ok = sheet.Parser.Verify(); !ok {
 		return nil
 	}
-	if sheet.ProtoName, ok = VerifyName(sheet.ProtoName); !ok {
+	if sheet.ProtoName, ok = VerifyName(sheet.SheetName); !ok {
 		return nil
 	}
 	//格式化ProtoName
@@ -151,17 +151,16 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 	//	sheet.DummyName = dummy.Name
 	//	sheet.ProtoName = sheet.ProtoName + Config.ArraySuffix
 	//}
-	protoName := sheet.ProtoName
+	//protoName := sheet.ProtoName
 	if len(sheet.Fields) > 0 {
 		sheet.ProtoName = Config.ProtoNameFilter(sheet.SheetType, sheet.ProtoName)
-		sheets[protoName] = sheet
+		sheets[strings.ToUpper(sheet.SheetName)] = sheet
 	}
 	for _, s := range sheet.sheetAttach {
 		switch s.t {
 		case SheetTypeEnum:
 			if newSheet := sheet.reParseEnum(s); newSheet != nil && len(newSheet.Fields) > 0 {
-				newSheet.ProtoName = Config.ProtoNameFilter(newSheet.SheetType, newSheet.ProtoName)
-				sheets[s.k] = newSheet
+				sheets[strings.ToUpper(newSheet.SheetName)] = newSheet
 			}
 		//case SheetTypeArray:
 		//	if newSheet := sheet.reParseArray(s); newSheet != nil && len(newSheet.Fields) > 0 {

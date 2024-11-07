@@ -86,6 +86,7 @@ type Sheet struct {
 	FileName     string                  //文件名
 	ProtoName    string                  // protoName 是pb.go中文件的名字，
 	SheetType    SheetType               //输出类型,kv arr map
+	SheetName    string                  //原名
 	ProtoIndex   int                     //总表编号
 	sheetAttach  map[string]*SheetAttach //枚举和索引
 	sheetIndexes [4]int                  //kv 索引
@@ -162,11 +163,21 @@ func (this *Sheet) reParseEnum(attach *SheetAttach) *Sheet {
 	//if p, ok := this.Parser.(ParserStructType); ok {
 	//	indexes = p.StructType(this.ProtoName)
 	//}
+	attach.k = Convert(attach.k)
 	newSheet := this.Clone()
 	newSheet.ProtoName = attach.k
+	newSheet.SheetName = attach.k
 	newSheet.SheetType = SheetTypeEnum
 	newSheet.sheetIndexes = attach.v
 	indexes := attach.v
+
+	var ok bool
+	if newSheet.ProtoName, ok = VerifyName(newSheet.ProtoName); !ok {
+		return nil
+	}
+	newSheet.ProtoName = TrimProtoName(newSheet.ProtoName)
+	newSheet.ProtoName = Config.ProtoNameFilter(newSheet.SheetType, newSheet.ProtoName)
+
 	for i := this.Skip; i <= maxRow; i++ {
 		row, err := this.Sheet.Row(i)
 		if err != nil {
