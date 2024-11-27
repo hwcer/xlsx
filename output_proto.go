@@ -3,7 +3,7 @@ package xlsx
 import (
 	"fmt"
 	"github.com/hwcer/cosgo"
-	"github.com/hwcer/logger"
+	"github.com/hwcer/cosgo/logger"
 	"os"
 	"path/filepath"
 	"strings"

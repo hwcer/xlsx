@@ -2,7 +2,7 @@ package xlsx
 
 import (
 	"fmt"
-	"github.com/hwcer/logger"
+	"github.com/hwcer/cosgo/logger"
 	"strings"
 	"text/template"
 )
