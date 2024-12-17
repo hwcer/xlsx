@@ -52,6 +52,7 @@ type config struct {
 	enums                 map[string]*enum
 	Types                 map[string]SheetType           //表结构
 	Proto                 string                         //proto 文件名
+	Empty                 func(string) bool              //检查是否为空
 	Package               string                         //包名
 	Parser                func(*Sheet) Parser            //解析器
 	Summary               string                         //总表名,留空不生成总表
@@ -68,6 +69,7 @@ var Config = &config{
 	enums:                map[string]*enum{},
 	Types:                map[string]SheetType{},
 	Proto:                "message.proto",
+	Empty:                func(s string) bool { return s == "" },
 	Package:              "data",
 	Summary:              "data",
 	Language:             []string{"text", "lang", "language"},

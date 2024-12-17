@@ -21,7 +21,7 @@ func LoadExcel(dir string) {
 			logger.Fatal("excel文件格式错误:%v\n%v", file, err)
 		}
 		for _, sheet := range wb.Sheets {
-			for k, v := range parseSheet(sheet) {
+			for k, v := range parseSheet(sheet, file) {
 				//lowerName := strings.ToLower(v.ProtoName)
 				if i, ok := filter[k]; ok {
 					logger.Alert("表格名字[%v]重复自动跳过", v.ProtoName)
@@ -29,7 +29,7 @@ func LoadExcel(dir string) {
 					logger.Alert("----sheet:%v,file:%v", i.Name, i.FileName)
 				} else {
 					protoIndex += 1
-					v.FileName = file
+					//v.FileName = file
 					v.ProtoIndex = protoIndex
 					filter[k] = v
 					sheets = append(sheets, v)
@@ -57,7 +57,7 @@ func LoadExcel(dir string) {
 	globalObjects = map[string]*Dummy{}
 }
 
-func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
+func parseSheet(v *xlsx.Sheet, file string) (sheets map[string]*Sheet) {
 	//tag := strings.ToUpper(cosgo.Config.GetString(FlagsNameTag))
 
 	sheets = map[string]*Sheet{}
@@ -66,6 +66,7 @@ func parseSheet(v *xlsx.Sheet) (sheets map[string]*Sheet) {
 	logger.Trace("----开始读取表格[%v],共有%v行", v.Name, maxRow)
 	sheet := &Sheet{Sheet: v, SheetType: SheetTypeHash}
 	sheet.Name = Convert(sheet.Name)
+	sheet.FileName = file
 	sheet.Parser = Config.Parser(sheet)
 	var ok bool
 	if sheet.Skip, sheet.SheetName, ok = sheet.Parser.Verify(); !ok {

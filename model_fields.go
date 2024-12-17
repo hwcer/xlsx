@@ -76,7 +76,7 @@ func (this *Field) getProtoValue(row *xlsx.Row, handle ProtoBuffParse) (any, err
 	}
 	var vs []string
 	for _, i := range index {
-		if c := row.GetCell(i); c != nil && c.Value != "" {
+		if c := row.GetCell(i); c != nil && !Config.Empty(c.Value) {
 			vs = append(vs, c.Value)
 		}
 	}

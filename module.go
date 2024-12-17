@@ -37,7 +37,7 @@ func init() {
 func New() *Module {
 	if mod == nil {
 		mod = &Module{}
-		mod.Id = "xlsx"
+		mod.Module = *cosgo.NewModule("xlsx")
 	}
 	return mod
 }
