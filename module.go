@@ -54,18 +54,8 @@ func (this *Module) Start() error {
 	}
 	Config.enums = map[string]*enum{}
 	for k, v := range enums {
-		var pk string
-		if v.Src != "" {
-			pk = TrimProtoName(v.Src)
-		} else {
-			pk = TrimProtoName(k)
-		}
-
-		if v.Name == "" {
-			v.Name = pk
-		} else {
-			v.Name = TrimProtoName(v.Name)
-		}
+		pk := TrimProtoName(k)
+		v.Src = TrimProtoName(v.Src)
 		Config.enums[pk] = v
 	}
 

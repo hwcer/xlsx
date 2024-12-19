@@ -80,7 +80,6 @@ func parseSheet(v *xlsx.Sheet, file string) (sheets map[string]*Sheet) {
 	if sheet.ProtoName == "" || strings.HasPrefix(sheet.Name, "~") || strings.HasPrefix(sheet.ProtoName, "~") {
 		return nil
 	}
-
 	//var pt ParserSheetType
 	//if pt, ok = sheet.Parser.(ParserSheetType); ok {
 	//	sheet.SheetType, sheet.SheetIndex = pt.SheetType()
@@ -90,6 +89,13 @@ func parseSheet(v *xlsx.Sheet, file string) (sheets map[string]*Sheet) {
 	if len(fields) == 0 {
 		//logger.Debug("表[%v]字段为空已经跳过", sheet.SheetName)
 		return nil
+	}
+	for pk, e := range Config.enums {
+		if e.Src == sheet.ProtoName {
+			if err := sheet.AddEnum(pk, e.Index); err != nil {
+				logger.Trace("add enums:%v   error:%v", pk, err)
+			}
+		}
 	}
 
 	var index int

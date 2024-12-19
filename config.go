@@ -43,8 +43,8 @@ type Parser interface {
 //}
 
 type enum struct {
-	Src   string `json:"src"`
-	Name  string `json:"name"`
+	Src string `json:"src"`
+	//Name  string `json:"name"`
 	Index [4]int `json:"index"`
 }
 

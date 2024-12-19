@@ -4,3 +4,6 @@ info="./output"
 json="./data/"
 ignore=""
 branch=""
+[enum.Events2]
+src="Emitter"
+index=[1,0,2,-1]
