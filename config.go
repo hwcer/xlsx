@@ -68,7 +68,7 @@ type config struct {
 var Config = &config{
 	enums:                map[string]*enum{},
 	Types:                map[string]SheetType{},
-	Proto:                "message.proto",
+	Proto:                "configs.proto",
 	Empty:                func(s string) bool { return s == "" },
 	Package:              "data",
 	Summary:              "data",
