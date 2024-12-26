@@ -83,6 +83,15 @@ func FirstUpper(s string) string {
 }
 
 func GetFiles(dir string, filter func(string) bool) (r []string) {
+	stat, err := os.Stat(dir)
+	if err != nil {
+		logger.Fatal(err)
+	}
+	if !stat.IsDir() {
+		r = append(r, dir)
+		return
+	}
+
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		logger.Fatal(err)
@@ -112,8 +121,8 @@ func preparePath() {
 	if !filepath.IsAbs(in) {
 		in = filepath.Join(root, in)
 	}
-	if excelStat, err := os.Stat(in); err != nil || !excelStat.IsDir() {
-		logger.Fatal("excel路径必须存在且为目录: %v ", in)
+	if _, err = os.Stat(in); err != nil {
+		logger.Fatal("excel路径不存在: %v ", in)
 	}
 	cosgo.Config.Set(FlagsNameIn, in)
 	logger.Trace("输入目录:%v", in)
@@ -131,7 +140,7 @@ func preparePath() {
 		for _, filename := range files {
 			if strings.HasSuffix(filename.Name(), ".proto") ||
 				strings.HasSuffix(filename.Name(), ".txt") {
-				err := os.Remove(filepath.Join(out, filename.Name()))
+				err = os.Remove(filepath.Join(out, filename.Name()))
 				if err != nil {
 					logger.Fatal(err)
 				}
