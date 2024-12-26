@@ -4,6 +4,7 @@ import (
 	"github.com/hwcer/cosgo"
 	"github.com/hwcer/cosgo/logger"
 	"github.com/tealeg/xlsx/v3"
+	"path/filepath"
 	"strings"
 )
 
@@ -58,8 +59,10 @@ func LoadExcel(dir string) {
 }
 
 func parseSheet(v *xlsx.Sheet, file string) (sheets map[string]*Sheet) {
-	//tag := strings.ToUpper(cosgo.Config.GetString(FlagsNameTag))
-
+	filename := filepath.Base(file)
+	if strings.HasPrefix(filename, "~") {
+		return nil
+	}
 	sheets = map[string]*Sheet{}
 	//countArr := []int{1, 101, 201, 301}
 	maxRow := v.MaxRow

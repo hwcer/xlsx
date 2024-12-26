@@ -36,6 +36,7 @@ message <%.Name%>{ <%range .Fields%>
 
 const TemplateMessage = `
 <%- range .Sheets%>
+// <%.FileName%>
 message <%.ProtoName%>{
 	<%- range .Fields %>
 	<%ProtoRequire .%> <%.Name%> = <%.ProtoIndex%>; //<% .ProtoDesc%><%end%>
