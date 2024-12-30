@@ -4,6 +4,7 @@ import (
 	"github.com/hwcer/cosgo"
 	"github.com/hwcer/cosgo/logger"
 	"github.com/tealeg/xlsx/v3"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -12,7 +13,20 @@ func LoadExcel(dir string) {
 	logger.Trace("====================开始解析静态数据====================")
 	var sheets []*Sheet
 	filter := map[string]*Sheet{}
-	files := GetFiles(dir, Ignore)
+	stat, err := os.Stat(dir)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	var files []string
+
+	if stat.IsDir() {
+		files = GetFiles(dir, Ignore)
+	} else {
+		files = append(files, dir)
+		dir = filepath.Dir(dir)
+	}
+
 	var protoIndex int
 	for _, file := range files {
 		//wb, err := spreadsheet.Open(file)

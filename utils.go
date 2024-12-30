@@ -83,15 +83,6 @@ func FirstUpper(s string) string {
 }
 
 func GetFiles(dir string, filter func(string) bool) (r []string) {
-	stat, err := os.Stat(dir)
-	if err != nil {
-		logger.Fatal(err)
-	}
-	if !stat.IsDir() {
-		r = append(r, dir)
-		return
-	}
-
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		logger.Fatal(err)
