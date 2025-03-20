@@ -37,15 +37,22 @@ func init() {
 func New() *Module {
 	if mod == nil {
 		mod = &Module{}
-		mod.Module = *cosgo.NewModule("xlsx")
 	}
 	return mod
 }
 
 type Module struct {
-	cosgo.Module
 }
 
+func (this *Module) Id() string {
+	return "xlsx"
+}
+func (this *Module) Init() error {
+	return nil
+}
+func (this *Module) Close() error {
+	return nil
+}
 func (this *Module) Start() error {
 	_ = logger.SetOutput(logger.DefaultConsoleName, logger.Console)
 	var enums = map[string]*enum{}

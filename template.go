@@ -11,6 +11,7 @@ var tpl *template.Template
 
 const TemplateTitle = `syntax = "proto3";
 option go_package = "./;<% .Package %>";
+package <% .Package %>;
 `
 
 const TemplateDummy = `//sign:<% .Label%>
@@ -18,21 +19,6 @@ message <%.Name%>{ <%range .Fields%>
 	<%DummyRequire .%> <%.Name%> = <%.ProtoIndex%>; <%end%>
 }
 `
-
-//const TemplateMessage = `
-//<%- range .Sheets%>
-//<%- if IsArray .SheetType %>
-//message <%.ProtoName%>{
-//	repeated <%.DummyName%> Coll = 1;
-//}
-//<%- else %>
-//message <%.ProtoName%>{
-//	<%- range .Fields %>
-//	<%ProtoRequire .%> <%.Name%> = <%.ProtoIndex%>; //<% .ProtoDesc%><%end%>
-//}
-//<%- end%>
-//<%- end%>
-//`
 
 const TemplateMessage = `
 <%- range .Sheets%>
