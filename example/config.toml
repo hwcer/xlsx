@@ -1,9 +1,9 @@
 in="./excel"
 out="./output"
-info="./output"
-json="./data/"
+info="./output/info.json"
+json="./output/data/"
 ignore=""
 branch=""
-[enum.Events2]
+[enum.Events]
 src="Emitter"
 index=[1,0,2,-1]

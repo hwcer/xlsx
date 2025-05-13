@@ -7,6 +7,10 @@ import (
 
 type ProtoBuffType string
 
+func (pt ProtoBuffType) IsNumber() bool {
+	return pt == ProtoBuffTypeInt32 || pt == ProtoBuffTypeInt64 || pt == ProtoBuffTypeUint32 || pt == ProtoBuffTypeUint64
+}
+
 type ProtoBuffParse interface {
 	Type() string                   //Field.SheetType to protocol type
 	Value(v ...string) (any, error) //protocol value

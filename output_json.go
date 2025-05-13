@@ -2,7 +2,7 @@ package xlsx
 
 import (
 	"github.com/hwcer/cosgo"
-	"github.com/hwcer/cosgo/logger"
+	"github.com/hwcer/logger"
 	"path/filepath"
 )
 

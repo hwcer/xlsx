@@ -2,7 +2,7 @@ package sample
 
 import (
 	"fmt"
-	"github.com/hwcer/cosgo/logger"
+	"github.com/hwcer/logger"
 	cosxls "github.com/hwcer/xlsx"
 	"github.com/tealeg/xlsx/v3"
 	"strconv"

@@ -2,7 +2,7 @@ package xlsx
 
 import (
 	"github.com/hwcer/cosgo"
-	"github.com/hwcer/cosgo/logger"
+	"github.com/hwcer/logger"
 )
 
 const (
@@ -22,7 +22,7 @@ var mod *Module
 
 func init() {
 	logger.SetCallDepth(0)
-	logger.DelOutput(logger.DefaultConsoleName)
+	logger.Console.Disable = true
 	cosgo.Config.Flags(FlagsNameIn, "", "", "需要解析的excel目录")
 	cosgo.Config.Flags(FlagsNameOut, "", "", "输出文件目录")
 	cosgo.Config.Flags(FlagsNameTag, "", "S", "字段标记，一般用来区分前后端字段,格式 客户端:C,服务器:S")
@@ -54,7 +54,7 @@ func (this *Module) Close() error {
 	return nil
 }
 func (this *Module) Start() error {
-	_ = logger.SetOutput(logger.DefaultConsoleName, logger.Console)
+	logger.Console.Disable = false
 	var enums = map[string]*enum{}
 	if err := cosgo.Config.UnmarshalKey("enum", &enums); err != nil {
 		return err
@@ -69,6 +69,6 @@ func (this *Module) Start() error {
 	preparePath()
 	LoadExcel(cosgo.Config.GetString(FlagsNameIn))
 	logger.Trace("\n========================恭喜大表哥导表成功========================\n")
-	logger.DelOutput(logger.DefaultConsoleName)
+	logger.Console.Disable = true
 	return nil
 }

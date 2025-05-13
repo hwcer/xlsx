@@ -2,8 +2,8 @@ package xlsx
 
 import (
 	"fmt"
-	"github.com/hwcer/cosgo/logger"
 	"github.com/hwcer/cosgo/utils"
+	"github.com/hwcer/logger"
 	"github.com/tealeg/xlsx/v3"
 	"strings"
 )
@@ -85,7 +85,7 @@ type Sheet struct {
 	Fields       []*Field                //字段列表
 	FileName     string                  //文件名
 	ProtoName    string                  // protoName 是pb.go中文件的名字，
-	SheetType    SheetType               //输出类型,kv arr map
+	SheetType    SheetType               //输出类型,kv map
 	SheetName    string                  //原名
 	ProtoIndex   int                     //总表编号
 	sheetAttach  map[string]*SheetAttach //枚举和索引

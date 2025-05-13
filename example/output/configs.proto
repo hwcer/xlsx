@@ -1,5 +1,6 @@
 syntax = "proto3";
 option go_package = "./;protoc";
+package protoc;
 
 //全局对象......
 //sign:IdInt32NumInt32PerInt32
@@ -16,6 +17,8 @@ message IdInt32NumInt32{
 
 //数据对象......
 
+// Sheet:全局事件
+// File:\全局事件.xlsx
 message Emitter{
 	int32 id = 1; //事件ID
 	string name = 2; //事件名称
@@ -26,16 +29,15 @@ message Emitter{
 	int32 update = 7; //允许客户端更新数据
 	int32 replace = 8; //数据更新模式
 }
+// Sheet:全局事件
+// File:\全局事件.xlsx
 message Events{
 	int32 login = 1; //1
 	int32 score = 2; //2
 	int32 order = 3; //3
 }
-message Events2{
-	int32 login = 1; //
-	int32 score = 2; //
-	int32 order = 3; //
-}
+// Sheet:map
+// File:\测试表.xlsx
 message Activity{
 	int32 id = 1; //活动
 	string TType = 2; //时间格式
@@ -43,6 +45,8 @@ message Activity{
 	IdInt32NumInt32PerInt32 Obj = 4; //
 	repeated IdInt32NumInt32 ArrObj = 5; //id
 }
+// Sheet:obj
+// File:\测试表.xlsx
 message Base{
 	string id = 1; //活动
 }
@@ -50,7 +54,6 @@ message Base{
 message configs{
 	map<int32,Emitter> Emitter=1;
 	Events Events=2;
-	Events2 Events2=3;
-	map<int32,Activity> Activity=4;
-	map<string,Base> Base=5;
+	map<int32,Activity> Activity=3;
+	map<string,Base> Base=4;
 }
