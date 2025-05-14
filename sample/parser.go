@@ -75,11 +75,11 @@ func (this *Parser) Fields() (r []*cosxls.Field) {
 	if row, err = this.sheet.Row(1); err != nil {
 		return
 	}
-	sheetType := map[int]cosxls.ProtoBuffType{}
+	protoType := map[int]cosxls.ProtoBuffType{}
 	fieldType := map[int]string{}
 	for j := 0; j <= this.sheet.MaxCol; j++ {
 		if c := row.GetCell(j); c != nil && c.Value != "" {
-			sheetType[j] = cosxls.ProtoBuffTypeFormat(c.Value)
+			protoType[j] = cosxls.ProtoBuffTypeFormat(c.Value)
 			fieldType[j] = strings.ToLower(strings.TrimSpace(c.Value))
 		}
 	}
@@ -100,14 +100,13 @@ func (this *Parser) Fields() (r []*cosxls.Field) {
 		return
 	}
 	for j := 0; j <= this.sheet.MaxCol; j++ {
-		protoType := sheetType[j]
 		if field.ProtoDesc == "" {
 			field.ProtoDesc = sheetDesc[j]
 		}
 		if field.FieldType == "" {
 			field.FieldType = fieldType[j]
 		}
-		if end = field.parse(protoType, row.GetCell(j), j); end {
+		if end = field.parse(protoType[j], row.GetCell(j), j); end {
 			if field.compile() {
 				r = append(r, &field.Field)
 				field = &Field{}

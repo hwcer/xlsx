@@ -3,16 +3,16 @@ option go_package = "./;protoc";
 package protoc;
 
 //全局对象......
-//sign:IdInt32NumInt32
-message IdInt32NumInt32{ 
-	int32 id = 1; 
-	int32 num = 2; 
-}
 //sign:IdInt32NumInt32PerInt32
 message IdInt32NumInt32PerInt32{ 
 	int32 id = 1; 
 	int32 num = 2; 
 	int32 per = 3; 
+}
+//sign:IdInt32NumInt32
+message IdInt32NumInt32{ 
+	int32 id = 1; 
+	int32 num = 2; 
 }
 
 //数据对象......
@@ -44,6 +44,7 @@ message ActivityRow{
 	repeated int32 Arr = 3; //
 	IdInt32NumInt32PerInt32 Obj = 4; //
 	repeated IdInt32NumInt32 ArrObj = 5; //id
+	repeated float ArrFloat = 6; //1
 }
 // Sheet:obj
 // File:\测试表.xlsx

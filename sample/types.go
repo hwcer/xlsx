@@ -9,16 +9,20 @@ import (
 
 // 扩展类型
 const (
-	FieldTypeObject           cosxls.ProtoBuffType = "Object"
-	FieldTypeArrayInt                              = "ArrInt"
-	FieldTypeArrayInt32                            = "ArrInt32"
-	FieldTypeArrayInt64                            = "ArrInt64"
-	FieldTypeArrayString                           = "ArrString"
-	FieldTypeArrayObject                           = "ArrObject"
-	FieldTypeArrayIntSplit                         = "[]int"    //单元格切割成数组
-	FieldTypeArrayInt32Split                       = "[]int32"  //单元格切割成数组
-	FieldTypeArrayInt64Split                       = "[]int64"  //单元格切割成数组
-	FieldTypeArrayStringSplit                      = "[]string" //单元格切割成数组
+	FieldTypeObject            cosxls.ProtoBuffType = "Object"
+	FieldTypeArrayInt                               = "ArrInt"
+	FieldTypeArrayInt32                             = "ArrInt32"
+	FieldTypeArrayInt64                             = "ArrInt64"
+	FieldTypeArrayFloat                             = "ArrFloat"
+	FieldTypeArrayFloat64                           = "ArrFloat64"
+	FieldTypeArrayString                            = "ArrString"
+	FieldTypeArrayObject                            = "ArrObject"
+	FieldTypeArrayIntSplit                          = "[]int"   //单元格切割成数组
+	FieldTypeArrayInt32Split                        = "[]int32" //单元格切割成数组
+	FieldTypeArrayInt64Split                        = "[]int64" //单元格切割成数组
+	FieldTypeArrayFloatSplit                        = "[]float"
+	FieldTypeArrayFloat64Split                      = "[]float64"
+	FieldTypeArrayStringSplit                       = "[]string" //单元格切割成数组
 )
 
 var multiple = map[cosxls.ProtoBuffType]struct{}{}
@@ -28,15 +32,20 @@ func init() {
 	cosxls.Register(FieldTypeArrayInt, &ArrayFromMultipleCell{t: cosxls.ProtoBuffTypeInt32})
 	cosxls.Register(FieldTypeArrayInt32, &ArrayFromMultipleCell{t: cosxls.ProtoBuffTypeInt32})
 	cosxls.Register(FieldTypeArrayInt64, &ArrayFromMultipleCell{t: cosxls.ProtoBuffTypeInt64})
+	cosxls.Register(FieldTypeArrayFloat, &ArrayFromMultipleCell{t: cosxls.ProtoBuffTypeFloat})
+	cosxls.Register(FieldTypeArrayFloat64, &ArrayFromMultipleCell{t: cosxls.ProtoBuffTypeDouble})
 	cosxls.Register(FieldTypeArrayString, &ArrayFromMultipleCell{t: cosxls.ProtoBuffTypeString})
 	cosxls.Register(FieldTypeArrayObject, &ArrayObject{})
 
 	cosxls.Register(FieldTypeArrayIntSplit, &ArrayFromSplit{t: cosxls.ProtoBuffTypeInt32})
 	cosxls.Register(FieldTypeArrayInt32Split, &ArrayFromSplit{t: cosxls.ProtoBuffTypeInt32})
 	cosxls.Register(FieldTypeArrayInt64Split, &ArrayFromSplit{t: cosxls.ProtoBuffTypeInt64})
+	cosxls.Register(FieldTypeArrayFloatSplit, &ArrayFromSplit{t: cosxls.ProtoBuffTypeFloat})
+	cosxls.Register(FieldTypeArrayFloat64Split, &ArrayFromSplit{t: cosxls.ProtoBuffTypeDouble})
 	cosxls.Register(FieldTypeArrayStringSplit, &ArrayFromSplit{t: cosxls.ProtoBuffTypeString})
 
-	SetMultipleType(FieldTypeObject, FieldTypeArrayInt, FieldTypeArrayInt64, FieldTypeArrayString, FieldTypeArrayObject)
+	SetMultipleType(FieldTypeObject, FieldTypeArrayInt, FieldTypeArrayInt64, FieldTypeArrayFloat, FieldTypeArrayFloat64, FieldTypeArrayString, FieldTypeArrayObject)
+
 }
 
 // IsMultipleType 取基础值类型

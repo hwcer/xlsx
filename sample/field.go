@@ -145,6 +145,8 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, cell *xlsx.Cell, index 
 			protoType = FieldTypeArrayInt
 		} else if fieldType == cosxls.ProtoBuffTypeInt64 {
 			protoType = FieldTypeArrayInt64
+		} else if fieldType == cosxls.ProtoBuffTypeFloat {
+			protoType = FieldTypeArrayFloat
 		}
 
 	} else if i = strings.Index(value, "{"); i >= 0 {
