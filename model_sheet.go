@@ -270,7 +270,7 @@ func (this *Sheet) kv() (any, []error) {
 		}
 		if field := this.SearchByTag(i); field != nil {
 			var data any
-			if data, err = field.Value(row); err == nil {
+			if data, err = field.Value(this, row); err == nil {
 				r[field.Name] = data
 			} else {
 				errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
@@ -354,7 +354,7 @@ func (this *Sheet) array() (any, []error) {
 func (this *Sheet) Value(row *xlsx.Row) (map[string]any, error) {
 	r := map[string]any{}
 	for _, field := range this.Fields {
-		v, e := field.GetBranch().Value(row)
+		v, e := field.GetBranch().Value(this, row)
 		if e != nil {
 			return nil, e
 		} else {

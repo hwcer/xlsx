@@ -3,6 +3,7 @@ package xlsx
 import (
 	"fmt"
 	"github.com/hwcer/cosgo"
+	"github.com/hwcer/logger"
 	"github.com/tealeg/xlsx/v3"
 	"strings"
 )
@@ -53,12 +54,12 @@ func (this *Field) GetBranch() *Field {
 }
 
 // Value 根据一行表格获取值
-func (this *Field) Value(row *xlsx.Row) (ret any, err error) {
+func (this *Field) Value(shell *Sheet, row *xlsx.Row) (ret any, err error) {
 	handle := Require(this.ProtoType)
 	if len(this.Dummy) > 0 {
-		ret, err = this.getDummyValue(row, handle)
+		ret, err = this.getDummyValue(shell, row, handle)
 	} else if handle != nil {
-		ret, err = this.getProtoValue(row, handle)
+		ret, err = this.getProtoValue(shell, row, handle)
 	} else {
 		err = fmt.Errorf("无法识别的类型(%v)", this.Name)
 	}
@@ -69,7 +70,7 @@ func (this *Field) Value(row *xlsx.Row) (ret any, err error) {
 }
 
 // getProtoValue 基础和预定义类型
-func (this *Field) getProtoValue(row *xlsx.Row, handle ProtoBuffParse) (any, error) {
+func (this *Field) getProtoValue(shell *Sheet, row *xlsx.Row, handle ProtoBuffParse) (any, error) {
 	index := this.Index
 	if len(index) == 0 {
 		return nil, fmt.Errorf("字段名:%v,错误信息:%v", this.Name, "缺少有效的数据列")
@@ -78,6 +79,8 @@ func (this *Field) getProtoValue(row *xlsx.Row, handle ProtoBuffParse) (any, err
 	for _, i := range index {
 		if c := row.GetCell(i); c != nil && !Config.Empty(c.Value) {
 			vs = append(vs, c.Value)
+		} else {
+			this.hasEmptyValue(shell, row)
 		}
 	}
 	if len(vs) > 0 {
@@ -90,13 +93,15 @@ func (this *Field) getProtoValue(row *xlsx.Row, handle ProtoBuffParse) (any, err
 }
 
 // getDummyValue 内置对象
-func (this *Field) getDummyValue(row *xlsx.Row, handle ProtoBuffParse) (any, error) {
+func (this *Field) getDummyValue(shell *Sheet, row *xlsx.Row, handle ProtoBuffParse) (any, error) {
 	var rs []any
 	for _, c := range this.Dummy {
 		if v, e := c.Value(row); e != nil {
 			return nil, e
 		} else if v != nil {
 			rs = append(rs, v)
+		} else {
+			this.hasEmptyValue(shell, row)
 		}
 	}
 	if len(rs) > 0 {
@@ -110,6 +115,15 @@ func (this *Field) getDummyValue(row *xlsx.Row, handle ProtoBuffParse) (any, err
 			return []any{}, nil
 		} else {
 			return nil, nil
+		}
+	}
+}
+
+func (this *Field) hasEmptyValue(shell *Sheet, row *xlsx.Row) {
+	if cosgo.Config.GetBool(FlagsNameVerify) {
+		id := row.GetCell(0).Value
+		if id != "" {
+			logger.Alert("空值警告 sheet:%s id:%s , field:%s", shell.SheetName, id, this.Name)
 		}
 	}
 }

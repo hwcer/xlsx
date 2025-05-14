@@ -15,7 +15,7 @@ const (
 	FlagsNameBranch   string = "branch"   //使用特定版本分支
 	FlagsNameSummary  string = "summary"  //设置总表名称,设置为空时不输出总表
 	FlagsNameLanguage string = "language" //多语言文件
-
+	FlagsNameVerify   string = "verify"
 )
 
 var mod *Module
@@ -32,6 +32,7 @@ func init() {
 	cosgo.Config.Flags(FlagsNameBranch, "", "", "使用特定版本分支")
 	cosgo.Config.Flags(FlagsNameSummary, "", "", "设置总表名称,默认data,设置为空时不输出总表")
 	cosgo.Config.Flags(FlagsNameLanguage, "", "", "生产的多语言EXCEL文件,默认不生成")
+	cosgo.Config.Flags(FlagsNameVerify, "", false, "是否开启空值检查")
 }
 
 func New() *Module {
