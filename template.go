@@ -24,7 +24,7 @@ const TemplateMessage = `
 <%- range .Sheets%>
 // Sheet:<%.Name%>
 // File:<%.FileName%>
-message <%.ProtoName%>{
+message <% ProtoNameFilter .%>{
 	<%- range .Fields %>
 	<%ProtoRequire .%> <%.Name%> = <%.ProtoIndex%>; //<% .ProtoDesc%><%end%>
 }
@@ -43,10 +43,10 @@ message <%.Name%>{
 func init() {
 	tpl = template.New("")
 	tpl.Funcs(template.FuncMap{
-		//"IsArray":      TemplateIsArray,
-		"SummaryType":  TemplateSummaryType,
-		"ProtoRequire": TemplateProtoRequire,
-		"DummyRequire": TemplateDummyRequire,
+		"SummaryType":     TemplateSummaryType,
+		"ProtoRequire":    TemplateProtoRequire,
+		"DummyRequire":    TemplateDummyRequire,
+		"ProtoNameFilter": ProtoNameFilterDefault,
 	})
 	tpl.Delims("<%", "%>")
 }

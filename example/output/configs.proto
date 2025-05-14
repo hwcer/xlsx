@@ -19,7 +19,7 @@ message IdInt32NumInt32{
 
 // Sheet:全局事件
 // File:\全局事件.xlsx
-message Emitter{
+message EmitterRow{
 	int32 id = 1; //事件ID
 	string name = 2; //事件名称
 	string type = 3; //类型
@@ -31,14 +31,14 @@ message Emitter{
 }
 // Sheet:全局事件
 // File:\全局事件.xlsx
-message Events{
+message EventsTable{
 	int32 login = 1; //1
 	int32 score = 2; //2
 	int32 order = 3; //3
 }
 // Sheet:map
 // File:\测试表.xlsx
-message Activity{
+message ActivityRow{
 	int32 id = 1; //活动
 	string TType = 2; //时间格式
 	repeated int32 Arr = 3; //
@@ -47,7 +47,7 @@ message Activity{
 }
 // Sheet:obj
 // File:\测试表.xlsx
-message Base{
+message BaseRow{
 	string id = 1; //活动
 }
 

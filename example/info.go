@@ -4,14 +4,38 @@ import (
 	"fmt"
 	"github.com/hwcer/cosgo"
 	"github.com/hwcer/xlsx"
+	"strings"
 )
 
 func init() {
-	xlsx.Config.SetOutput(&infoOutput{})
+	i := &infoOutput{}
+	xlsx.Config.SetOutput(i)
+	xlsx.Config.SetJsonNameFilter(i.JsonNameFilter)
+	xlsx.Config.SetProtoNameFilter(i.ProtoNameFilter)
 }
 
 // 添加一个索引表
 type infoOutput struct{}
+
+func (i infoOutput) JsonNameFilter(sheet *xlsx.Sheet) string {
+	tag := strings.ToUpper(cosgo.Config.GetString(xlsx.FlagsNameTag))
+	if tag != "C" {
+		return sheet.ProtoName
+	}
+	return sheet.SheetName
+}
+
+func (i infoOutput) ProtoNameFilter(sheet *xlsx.Sheet) string {
+	tag := strings.ToUpper(cosgo.Config.GetString(xlsx.FlagsNameTag))
+	if tag != "C" {
+		return sheet.ProtoName
+	}
+	if sheet.SheetType == xlsx.SheetTypeHash {
+		return fmt.Sprintf("%sRow", sheet.ProtoName)
+	} else {
+		return fmt.Sprintf("%sTable", sheet.ProtoName)
+	}
+}
 
 func (i infoOutput) Writer(sheets []*xlsx.Sheet) {
 	path := cosgo.Config.GetString("info")
@@ -41,7 +65,7 @@ func (i infoOutput) Writer(sheets []*xlsx.Sheet) {
 			v.TableClass = fmt.Sprintf("%sTable", sheet.ProtoName)
 		}
 
-		s[sheet.ProtoName] = v
+		s[sheet.SheetName] = v
 		tableList = append(tableList, sheet.SheetName)
 	}
 

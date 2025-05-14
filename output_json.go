@@ -12,7 +12,8 @@ func writeValueJson(sheets []*Sheet) {
 	var errs []error
 	for _, sheet := range sheets {
 		if v, e := sheet.Values(); len(e) == 0 {
-			data[sheet.ProtoName] = v
+			name := JsonNameFilterDefault(sheet)
+			data[name] = v
 			//if e2 := WriteFile(sheet.ProtoName, v); e2 != nil {
 			//	errs = append(errs, e2)
 			//}

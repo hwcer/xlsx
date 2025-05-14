@@ -49,18 +49,19 @@ type enum struct {
 
 type config struct {
 	enums                 map[string]*enum
-	Types                 map[string]SheetType           //表结构
-	Proto                 string                         //proto 文件名
-	Empty                 func(string) bool              //检查是否为空
-	Package               string                         //包名
-	Parser                func(*Sheet) Parser            //解析器
-	Summary               string                         //总表名,留空不生成总表
-	Message               func() string                  //可以加人proto全局对象
-	Language              []string                       //多语言文本包含的类型
-	Outputs               []Output                       //附加输出插件
-	ProtoNameFilter       func(SheetType, string) string //过滤器
-	LanguageNewSheetName  string                         //多语言增量页签名
-	EnableGlobalDummyName bool                           //允许自定义全局对象名
+	Types                 map[string]SheetType //表结构
+	Proto                 string               //proto 文件名
+	Empty                 func(string) bool    //检查是否为空
+	Package               string               //包名
+	Parser                func(*Sheet) Parser  //解析器
+	Summary               string               //总表名,留空不生成总表
+	Message               func() string        //可以加人proto全局对象
+	Language              []string             //多语言文本包含的类型
+	Outputs               []Output             //附加输出插件
+	JsonNameFilter        func(*Sheet) string  //JSON文件名字
+	ProtoNameFilter       func(*Sheet) string  //过滤器
+	LanguageNewSheetName  string               //多语言增量页签名
+	EnableGlobalDummyName bool                 //允许自定义全局对象名
 }
 
 var Config = &config{
@@ -71,8 +72,21 @@ var Config = &config{
 	Package:              "data",
 	Summary:              "data",
 	Language:             []string{"text", "lang", "language"},
-	ProtoNameFilter:      func(sheetType SheetType, s string) string { return s },
 	LanguageNewSheetName: "多语言文本",
+}
+
+func JsonNameFilterDefault(s *Sheet) string {
+	if Config.JsonNameFilter == nil {
+		return Config.JsonNameFilter(s)
+	}
+	return s.ProtoName
+}
+
+func ProtoNameFilterDefault(s *Sheet) string {
+	if Config.ProtoNameFilter != nil {
+		return Config.ProtoNameFilter(s)
+	}
+	return s.ProtoName
 }
 
 func (this *config) SetType(t SheetType, names ...string) {
@@ -89,7 +103,11 @@ func (this *config) GetType(name string) SheetType {
 func (this *config) SetOutput(o Output) {
 	this.Outputs = append(this.Outputs, o)
 }
-func (this *config) SetProtoNameFilter(f func(SheetType, string) string) {
+
+func (this *config) SetJsonNameFilter(f func(*Sheet) string) {
+	this.JsonNameFilter = f
+}
+func (this *config) SetProtoNameFilter(f func(*Sheet) string) {
 	this.ProtoNameFilter = f
 }
 func init() {

@@ -176,7 +176,7 @@ func (this *Sheet) reParseEnum(attach *SheetAttach) *Sheet {
 		return nil
 	}
 	newSheet.ProtoName = TrimProtoName(newSheet.ProtoName)
-	newSheet.ProtoName = Config.ProtoNameFilter(newSheet.SheetType, newSheet.ProtoName)
+	//newSheet.ProtoName = Config.ProtoNameFilter(newSheet, newSheet.ProtoName)
 
 	for i := this.Skip; i <= maxRow; i++ {
 		row, err := this.Sheet.Row(i)

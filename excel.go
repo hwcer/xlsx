@@ -89,11 +89,11 @@ func parseSheet(v *xlsx.Sheet, file string, dir string) (sheets map[string]*Shee
 	if sheet.Skip, sheet.SheetName, ok = sheet.Parser.Verify(); !ok {
 		return nil
 	}
-	if sheet.ProtoName, ok = VerifyName(sheet.SheetName); !ok {
+	if sheet.SheetName, ok = VerifyName(sheet.SheetName); !ok {
 		return nil
 	}
 	//格式化ProtoName
-	sheet.ProtoName = TrimProtoName(sheet.ProtoName)
+	sheet.ProtoName = TrimProtoName(sheet.SheetName)
 	if sheet.ProtoName == "" || strings.HasPrefix(sheet.Name, "~") || strings.HasPrefix(sheet.ProtoName, "~") {
 		return nil
 	}
@@ -177,7 +177,7 @@ func parseSheet(v *xlsx.Sheet, file string, dir string) (sheets map[string]*Shee
 	//}
 	//protoName := sheet.ProtoName
 	if len(sheet.Fields) > 0 {
-		sheet.ProtoName = Config.ProtoNameFilter(sheet.SheetType, sheet.ProtoName)
+		//sheet.ProtoName = Config.ProtoNameFilter(sheet, sheet.ProtoName)
 		sheets[strings.ToUpper(sheet.SheetName)] = sheet
 	}
 	for _, s := range sheet.sheetAttach {
