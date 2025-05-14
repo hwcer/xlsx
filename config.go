@@ -76,7 +76,7 @@ var Config = &config{
 }
 
 func JsonNameFilterDefault(s *Sheet) string {
-	if Config.JsonNameFilter == nil {
+	if Config.JsonNameFilter != nil {
 		return Config.JsonNameFilter(s)
 	}
 	return s.ProtoName

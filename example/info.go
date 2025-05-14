@@ -7,11 +7,14 @@ import (
 	"strings"
 )
 
+const FlagsNameInfo string = "info"
+
 func init() {
 	i := &infoOutput{}
 	xlsx.Config.SetOutput(i)
 	xlsx.Config.SetJsonNameFilter(i.JsonNameFilter)
 	xlsx.Config.SetProtoNameFilter(i.ProtoNameFilter)
+	cosgo.Config.Flags(FlagsNameInfo, "", "", "生成索引文件路径")
 }
 
 // 添加一个索引表
@@ -38,7 +41,7 @@ func (i infoOutput) ProtoNameFilter(sheet *xlsx.Sheet) string {
 }
 
 func (i infoOutput) Writer(sheets []*xlsx.Sheet) {
-	path := cosgo.Config.GetString("info")
+	path := cosgo.Config.GetString(FlagsNameInfo)
 	if path == "" {
 		return
 	}

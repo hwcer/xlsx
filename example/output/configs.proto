@@ -3,16 +3,16 @@ option go_package = "./;protoc";
 package protoc;
 
 //全局对象......
+//sign:IdInt32NumInt32
+message IdInt32NumInt32{ 
+	int32 id = 1; 
+	int32 num = 2; 
+}
 //sign:IdInt32NumInt32PerInt32
 message IdInt32NumInt32PerInt32{ 
 	int32 id = 1; 
 	int32 num = 2; 
 	int32 per = 3; 
-}
-//sign:IdInt32NumInt32
-message IdInt32NumInt32{ 
-	int32 id = 1; 
-	int32 num = 2; 
 }
 
 //数据对象......
@@ -50,10 +50,18 @@ message ActivityRow{
 message BaseRow{
 	string id = 1; //活动
 }
+// Sheet:obj
+// File:\测试表.xlsx
+message BaseeTable{
+	int32 lv = 1; //
+	int64 exp = 2; //
+	string name = 3; //
+}
 
 message configs{
 	map<int32,Emitter> Emitter=1;
 	Events Events=2;
 	map<int32,Activity> Activity=3;
 	map<string,Base> Base=4;
+	Basee Basee=5;
 }
