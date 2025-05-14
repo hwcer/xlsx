@@ -60,9 +60,9 @@ message BaseeTable{
 }
 
 message configs{
-	map<int32,Emitter> Emitter=1;
-	Events Events=2;
-	map<int32,Activity> Activity=3;
-	map<string,Base> Base=4;
-	Basee Basee=5;
+	map<int32,EmitterRow> Emitter=1;
+	EventsTable Events=2;
+	map<int32,ActivityRow> Activity=3;
+	map<string,BaseRow> Base=4;
+	BaseeTable Basee=5;
 }

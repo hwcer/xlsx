@@ -81,15 +81,16 @@ func TemplateDummyRequire(field *DummyField) string {
 func TemplateSummaryType(sheet *Sheet) (r string) {
 	primary := sheet.Fields[0]
 	//var t string
+	t := ProtoNameFilterDefault(sheet)
 	switch sheet.SheetType {
 	case SheetTypeEnum:
-		return fmt.Sprintf("%v %v", sheet.ProtoName, sheet.ProtoName)
+		return fmt.Sprintf("%v %v", t, sheet.ProtoName)
 	//case SheetTypeArray:
 	//	return fmt.Sprintf("map<int32,%v> %v", sheet.ProtoName, sheet.ProtoName)
 	//return fmt.Sprintf("repeated %v", sheet.DummyName)
 	default:
 		//t = fmt.Sprintf("%v%v", sheet.ProtoName, Config.Suffix)
-		return fmt.Sprintf("map<%v,%v> %v", primary.ProtoType, sheet.ProtoName, sheet.ProtoName)
+		return fmt.Sprintf("map<%v,%v> %v", primary.ProtoType, t, sheet.ProtoName)
 	}
 	//return fmt.Sprintf("map<%v,%v>", primary.ProtoType, sheet.ProtoName)
 }

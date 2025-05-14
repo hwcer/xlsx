@@ -106,7 +106,11 @@ func (this *Parser) Fields() (r []*cosxls.Field) {
 		if field.FieldType == "" {
 			field.FieldType = fieldType[j]
 		}
-		if end = field.parse(protoType[j], row.GetCell(j), j); end {
+		pt, _ := protoType[j]
+		if pt == "" {
+			pt = field.ProtoType
+		}
+		if end = field.parse(pt, row.GetCell(j), j); end {
 			if field.compile() {
 				r = append(r, &field.Field)
 				field = &Field{}
