@@ -13,6 +13,7 @@ const (
 	FlagsNameJson     string = "json"
 	FlagsNameIgnore   string = "ignore"   //忽略列表
 	FlagsNameBranch   string = "branch"   //使用特定版本分支
+	FlagsNamePackage  string = "package"  //设置包名
 	FlagsNameSummary  string = "summary"  //设置总表名称,设置为空时不输出总表
 	FlagsNameLanguage string = "language" //多语言文件
 	FlagsNameVerify   string = "verify"
@@ -30,6 +31,7 @@ func init() {
 	cosgo.Config.Flags(FlagsNameJson, "", "", "是否导json格式")
 	cosgo.Config.Flags(FlagsNameIgnore, "", "", "忽略的文件或者文件夹逗号分割多个")
 	cosgo.Config.Flags(FlagsNameBranch, "", "", "使用特定版本分支")
+	cosgo.Config.Flags(FlagsNamePackage, "", "", "设置包体名称,默认data")
 	cosgo.Config.Flags(FlagsNameSummary, "", "", "设置总表名称,默认data,设置为空时不输出总表")
 	cosgo.Config.Flags(FlagsNameLanguage, "", "", "生产的多语言EXCEL文件,默认不生成")
 	cosgo.Config.Flags(FlagsNameVerify, "", false, "是否开启空值检查")

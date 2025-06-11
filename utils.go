@@ -102,6 +102,9 @@ func GetFiles(dir string, filter func(string) bool) (r []string) {
 
 func preparePath() {
 	var err error
+	if cosgo.Config.IsSet(FlagsNamePackage) {
+		Config.Package = cosgo.Config.GetString(FlagsNamePackage)
+	}
 	if cosgo.Config.IsSet(FlagsNameSummary) {
 		Config.Summary = cosgo.Config.GetString(FlagsNameSummary)
 	}
