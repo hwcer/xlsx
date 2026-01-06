@@ -9,14 +9,14 @@ const (
 	FlagsNameIn       string = "in"
 	FlagsNameGo       string = "go"
 	FlagsNameOut      string = "out"
-	FlagsNameTag      string = "tag"
+	FlagsNameTag      string = "tag" //c 客户端打表，活生成特定后缀
 	FlagsNameJson     string = "json"
 	FlagsNameIgnore   string = "ignore"   //忽略列表
 	FlagsNameBranch   string = "branch"   //使用特定版本分支
 	FlagsNamePackage  string = "package"  //设置包名
 	FlagsNameSummary  string = "summary"  //设置总表名称,设置为空时不输出总表
 	FlagsNameLanguage string = "language" //多语言文件
-	FlagsNameVerify   string = "verify"
+	FlagsNameVerify   string = "verify"   //空值警告
 )
 
 var mod *Module

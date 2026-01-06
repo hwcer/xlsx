@@ -3,12 +3,12 @@ package xlsx
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hwcer/cosgo"
-	"github.com/hwcer/logger"
-	"github.com/tealeg/xlsx/v3"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/hwcer/cosgo"
+	"github.com/hwcer/logger"
 )
 
 func VerifyName(s string) (k string, ok bool) {
@@ -64,15 +64,6 @@ func Ignore(f string) bool {
 		}
 	}
 	return true
-}
-
-func Valid(sheet *xlsx.Sheet) bool {
-	r, e := sheet.Row(0)
-	if e != nil {
-		logger.Fatal("获取sheet行错误 name:%v,err:%v", sheet.Name, e)
-	}
-	cell := r.GetCell(0)
-	return cell != nil && cell.Value != ""
 }
 
 func FirstUpper(s string) string {

@@ -2,9 +2,11 @@ package xlsx
 
 import (
 	"fmt"
+
 	"github.com/hwcer/cosgo/utils"
 	"github.com/hwcer/logger"
-	"github.com/tealeg/xlsx/v3"
+	"github.com/xuri/excelize/v2"
+
 	"strings"
 )
 
@@ -12,28 +14,6 @@ type GlobalDummy map[string]*Dummy
 
 var ignoreFiles []string
 var globalObjects = GlobalDummy{}
-
-//func (this GlobalDummy) Name(d *Dummy) string {
-//	label := d.Compile()
-//	if v, ok := this[label]; ok && v.Name != "" {
-//		return v.Name
-//	} else {
-//		return label
-//	}
-//}
-
-// Exist 查找名字是否存在
-//func (this GlobalDummy) Exist(d *Dummy) *Dummy {
-//	if d.Name == "" {
-//		return nil
-//	}
-//	for _, v := range this {
-//		if d.Name == v.Name && d.Compile() != v.Compile() {
-//			return v
-//		}
-//	}
-//	return nil
-//}
 
 func (this GlobalDummy) Insert(sheet *Sheet, d *Dummy, must ...bool) {
 	label := d.Compile()
@@ -54,32 +34,13 @@ func (this GlobalDummy) Insert(sheet *Sheet, d *Dummy, must ...bool) {
 			this[label] = d
 		}
 	}
-
-	//if !Config.EnableGlobalDummyName && (len(must) == 0 || !must[0]) {
-	//	d.Name = label
-	//}
-	//if e := globalObjects.Exist(d); e != nil {
-	//	logger.Trace("子对象名重复并且属性不一样:%v.%v  Label:%v", sheet.ProtoName, d.Name, d.Compile())
-	//	d.Name = label
-	//}
-	//if d.Name == "" {
-	//	d.Name = label
-	//}
-	//if v, ok := this[label]; !ok {
-	//	this[label] = d
-	//} else if v.Name == "" {
-	//	v.Name = d.Name
-	//}
-	//
-	//if v.Name == "" {
-	//	v.Name = d.Name
-	//} else if d.Name != "" && v.Name != d.Name {
-	//	logger.Trace("冗余的对象名称%v,建议修改成%v", d.Name, v.Name)
-	//}
 }
 
 type Sheet struct {
-	*xlsx.Sheet
+	//*xlsx.Sheet
+	//Rows         [][]string
+
+	Name         string                  //
 	Skip         int                     //数据表中数据部分需要跳过的行数
 	Parser       Parser                  //解析器
 	Fields       []*Field                //字段列表
@@ -90,6 +51,8 @@ type Sheet struct {
 	ProtoIndex   int                     //总表编号
 	sheetAttach  map[string]*SheetAttach //枚举和索引
 	sheetIndexes [4]int                  //kv 索引
+	rows         [][]string              //所有行数据
+	excel        *excelize.File
 }
 
 type SheetAttach struct {
@@ -100,9 +63,47 @@ type SheetAttach struct {
 
 //const RowId = "id"
 
-//type rowArr struct {
-//	Coll []any
-//}
+//	type rowArr struct {
+//		Coll []any
+//	}
+
+// GetRows 获取工作表的所有行数据
+// 该方法会缓存行数据，避免重复读取Excel文件
+// 返回：包含所有行的二维字符串数组，如果获取失败则返回nil
+func (this *Sheet) GetRows() [][]string {
+	var err error
+	if this.rows == nil {
+		if this.rows, err = this.excel.GetRows(this.SheetName); err != nil {
+			logger.Trace("获取行数据失败:%v,err:%v", this.SheetName, err)
+			return nil
+		}
+	}
+	return this.rows
+}
+
+// GetRow 获取指定索引的行数据
+// 参数：
+//
+//	index: 行索引（从0开始）
+//
+// 返回：指定行的字符串数组，如果索引超出范围则返回nil
+func (this *Sheet) GetRow(index int) []string {
+	rows := this.GetRows()
+	if index >= len(rows) {
+		return nil
+	}
+	return rows[index]
+}
+
+// MaxRow 获取工作表的最大行数
+// 返回：工作表的总行数，如果没有行数据则返回0
+func (this *Sheet) MaxRow() int {
+	rows := this.GetRows()
+	if len(rows) == 0 {
+		return 0
+	}
+	return len(rows)
+}
 
 func (this *Sheet) Clone() *Sheet {
 	r := *this
@@ -156,7 +157,11 @@ func (this *Sheet) AddEnum(k string, v [4]int) error {
 
 // 重新解析obj的字段
 func (this *Sheet) reParseEnum(attach *SheetAttach) *Sheet {
-	maxRow := this.MaxRow
+	rows := this.GetRows()
+	if rows == nil {
+		return nil
+	}
+	maxRow := this.MaxRow() - 1
 	var index int
 	var fields []*Field
 	//indexes := this.SheetIndex
@@ -179,11 +184,14 @@ func (this *Sheet) reParseEnum(attach *SheetAttach) *Sheet {
 	//newSheet.ProtoName = Config.ProtoNameFilter(newSheet, newSheet.ProtoName)
 
 	for i := this.Skip; i <= maxRow; i++ {
-		row, err := this.Sheet.Row(i)
-		if err != nil {
-			logger.Trace("%v,err:%v", i, err)
+		row := this.GetRow(i)
+		if row == nil {
+			break
 		}
-		key := strings.TrimSpace(row.GetCell(indexes[0]).Value)
+		key := ""
+		if indexes[0] < len(row) {
+			key = strings.TrimSpace(row[indexes[0]])
+		}
 		if utils.Empty(key) {
 			continue
 		}
@@ -198,16 +206,16 @@ func (this *Sheet) reParseEnum(attach *SheetAttach) *Sheet {
 		//
 		field.ProtoIndex = index
 		//field.ProtoRequire = FieldTypeNone
-		if indexes[2] >= 0 {
-			if v := strings.TrimSpace(row.GetCell(indexes[2]).Value); v != "" {
+		if indexes[2] >= 0 && indexes[2] < len(row) {
+			if v := strings.TrimSpace(row[indexes[2]]); v != "" {
 				field.ProtoType = ProtoBuffTypeFormat(v)
 			}
 		}
 		if field.ProtoType == "" {
 			field.ProtoType = ProtoBuffTypeFormat("int")
 		}
-		if indexes[3] >= 0 {
-			if v := strings.TrimSpace(row.GetCell(indexes[3]).Value); v != "" {
+		if indexes[3] >= 0 && indexes[3] < len(row) {
+			if v := strings.TrimSpace(row[indexes[3]]); v != "" {
 				field.ProtoDesc = v
 			}
 		}
@@ -216,24 +224,6 @@ func (this *Sheet) reParseEnum(attach *SheetAttach) *Sheet {
 	newSheet.Fields = fields
 	return newSheet
 }
-
-// 重新解析obj的字段
-//func (this *Sheet) reParseArray(attach *SheetAttach) *Sheet {
-//	newSheet := this.Clone()
-//	newSheet.SheetType = SheetTypeArray
-//	newSheet.ProtoName = attach.k
-//	newSheet.sheetIndexes = attach.v
-//	for i := 0; i <= 1; i++ {
-//		k := attach.v[i]
-//		if f := this.SearchByIndex(k); f != nil {
-//			newSheet.Fields = append(newSheet.Fields, f)
-//		} else {
-//			logger.Alert("reParseArray coll not exist,sheet:%v,name:%v,index:%v", this.ProtoName, attach.k, attach.v)
-//			return nil
-//		}
-//	}
-//	return newSheet
-//}
 
 func (this *Sheet) GetField(name string) *Field {
 	for _, v := range this.Fields {
@@ -258,22 +248,27 @@ func (this *Sheet) kv() (any, []error) {
 	r := map[string]any{}
 	var errs []error
 	//var emptyCell []int
-	maxRow := this.Sheet.MaxRow
+	rows := this.GetRows()
+	if rows == nil {
+		return r, errs
+	}
+	maxRow := this.MaxRow() - 1
 	//indexes := this.sheetIndexes
 	//if p, ok := this.Parser.(ParserStructType); ok {
 	//	indexes = p.StructType(this.ProtoName)
 	//}
 	for i := this.Skip; i <= maxRow; i++ {
-		row, err := this.Sheet.Row(i)
-		if err != nil {
-			logger.Trace("%v,err:%v", i, err)
+		row := this.GetRow(i)
+		if row == nil {
+			break
 		}
 		if field := this.SearchByTag(i); field != nil {
 			var data any
+			var err error
 			if data, err = field.Value(this, row); err == nil {
 				r[field.Name] = data
 			} else {
-				errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
+				errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, i+1, err))
 			}
 		}
 	}
@@ -287,21 +282,28 @@ func (this *Sheet) hash() (any, []error) {
 	r := map[string]any{}
 	var errs []error
 	var emptyCell []int
-	maxRow := this.Sheet.MaxRow
+	rows := this.GetRows()
+	if rows == nil {
+		return r, errs
+	}
+	maxRow := this.MaxRow() - 1
 	for i := this.Skip; i <= maxRow; i++ {
-		row, err := this.Sheet.Row(i)
-		if err != nil {
-			logger.Trace("%v,err:%v", i, err)
+		row := this.GetRow(i)
+		if row == nil {
+			break
 		}
 
-		id := strings.TrimSpace(row.GetCell(0).Value)
+		id := ""
+		if len(row) > 0 {
+			id = strings.TrimSpace(row[0])
+		}
 		if utils.Empty(id) {
-			emptyCell = append(emptyCell, row.GetCoordinate()+1)
+			emptyCell = append(emptyCell, i+1)
 			continue
 		}
 		val, err := this.Value(row)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
+			errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, i+1, err))
 			continue
 		}
 		r[id] = val
@@ -313,45 +315,7 @@ func (this *Sheet) hash() (any, []error) {
 	return r, errs
 }
 
-func (this *Sheet) array() (any, []error) {
-	return nil, nil
-	//r := map[string]*rowArr{}
-	//var errs []error
-	//var emptyCell []int
-	//maxRow := this.Sheet.MaxRow
-	//for i := this.Skip; i <= maxRow; i++ {
-	//	row, err := this.Sheet.Row(i)
-	//	if err != nil {
-	//		logger.Trace("%v,err:%v", i, err)
-	//	}
-	//
-	//	id := strings.TrimSpace(row.GetCell(0).Value)
-	//	if utils.Empty(id) {
-	//		emptyCell = append(emptyCell, row.GetCoordinate()+1)
-	//		continue
-	//	}
-	//	//MAP ARRAY
-	//	val, err := this.Value(row)
-	//	if err != nil {
-	//		errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, row.GetCoordinate()+1, err))
-	//		continue
-	//	}
-	//	if d, ok := r[id]; ok {
-	//		d.Coll = append(d.Coll, val)
-	//	} else {
-	//		d = &rowArr{}
-	//		d.Coll = append(d.Coll, val)
-	//		r[id] = d
-	//	}
-	//}
-	//
-	//if len(emptyCell) > 10 {
-	//	logger.Trace("%v共%v行ID为空已经忽略:%v", this.ProtoName, len(emptyCell), emptyCell)
-	//}
-	//return r, errs
-}
-
-func (this *Sheet) Value(row *xlsx.Row) (map[string]any, error) {
+func (this *Sheet) Value(row []string) (map[string]any, error) {
 	r := map[string]any{}
 	for _, field := range this.Fields {
 		v, e := field.GetBranch().Value(this, row)
@@ -373,18 +337,25 @@ func (this *Sheet) Language(r map[string]string, types map[string]bool) {
 			fields = append(fields, v)
 		}
 	}
-	maxRow := this.Sheet.MaxRow
+	rows := this.GetRows()
+	if rows == nil {
+		return
+	}
+	maxRow := this.MaxRow() - 1
 	for i := this.Skip; i <= maxRow; i++ {
-		row, err := this.Sheet.Row(i)
-		if err != nil {
-			logger.Trace("%v,err:%v", i, err)
+		row := this.GetRow(i)
+		if row == nil {
+			break
 		}
-		id := strings.TrimSpace(row.GetCell(0).Value)
+		id := ""
+		if len(row) > 0 {
+			id = strings.TrimSpace(row[0])
+		}
 		if !utils.Empty(id) {
 			for _, f := range fields {
-				if c := row.GetCell(f.Index[0]); c != nil {
+				if f.Index[0] < len(row) {
 					k := fmt.Sprintf("%v_%v_%v", this.ProtoName, f.Name, id)
-					r[k] = c.Value
+					r[k] = row[f.Index[0]]
 				}
 			}
 		}

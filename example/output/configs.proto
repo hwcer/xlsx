@@ -17,9 +17,9 @@ message IdInt32NumInt32{
 
 //数据对象......
 
-// Sheet:全局事件
+// Sheet:
 // File:\全局事件.xlsx
-message EmitterRow{
+message Emitter{
 	int32 id = 1; //事件ID
 	string name = 2; //事件名称
 	string type = 3; //类型
@@ -29,40 +29,34 @@ message EmitterRow{
 	int32 update = 7; //允许客户端更新数据
 	int32 replace = 8; //数据更新模式
 }
-// Sheet:全局事件
+// Sheet:
 // File:\全局事件.xlsx
-message EventsTable{
+message Events{
 	int32 login = 1; //1
 	int32 score = 2; //2
 	int32 order = 3; //3
 }
-// Sheet:map
+// Sheet:
 // File:\测试表.xlsx
-message ActivityRow{
+message Activity{
 	int32 id = 1; //活动
 	string TType = 2; //时间格式
 	repeated int32 Arr = 3; //
 	IdInt32NumInt32PerInt32 Obj = 4; //
 	repeated IdInt32NumInt32 ArrObj = 5; //id
-	repeated float ArrFloat = 6; //1
+	repeated float ArrFloat = 6; //1.1
 }
-// Sheet:obj
+// Sheet:
 // File:\测试表.xlsx
-message BaseRow{
-	string id = 1; //活动
-}
-// Sheet:obj
-// File:\测试表.xlsx
-message BaseeTable{
+message Base{
 	int32 lv = 1; //
 	int64 exp = 2; //
 	string name = 3; //
 }
 
 message configs{
-	map<int32,EmitterRow> Emitter=1;
-	EventsTable Events=2;
-	map<int32,ActivityRow> Activity=3;
-	map<string,BaseRow> Base=4;
-	BaseeTable Basee=5;
+	map<int32,Emitter> Emitter=1;
+	Events Events=2;
+	map<int32,Activity> Activity=3;
+	Base Base=4;
 }

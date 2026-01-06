@@ -5,6 +5,6 @@ json="./output/data/"
 ignore=""
 branch=""
 
-[enum.BaseE]
+[enum.Base]
 src="Base"
 index=[0,1,2,-1]

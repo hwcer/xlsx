@@ -2,7 +2,6 @@ package xlsx
 
 import (
 	"fmt"
-	"github.com/tealeg/xlsx/v3"
 	"sort"
 	"strings"
 )
@@ -70,14 +69,14 @@ func (this *Dummy) Compile() string {
 }
 
 // Value 填充对象值
-func (this *Dummy) Value(row *xlsx.Row) (map[string]any, error) {
+func (this *Dummy) Value(row []string) (map[string]any, error) {
 	r := map[string]any{}
 	for _, field := range this.Fields {
-		cell := row.GetCell(field.SheetIndex)
 		handle := Require(field.ProtoType)
-		if cell != nil && handle != nil {
-			if cell.Value != "" {
-				if v, err := handle.Value(cell.Value); err != nil {
+		if field.SheetIndex < len(row) && handle != nil {
+			cellValue := row[field.SheetIndex]
+			if cellValue != "" {
+				if v, err := handle.Value(cellValue); err != nil {
 					return nil, err
 				} else if v != nil {
 					r[field.Name] = v

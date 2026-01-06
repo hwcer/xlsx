@@ -1,12 +1,14 @@
 package xlsx
 
 import (
-	"github.com/hwcer/cosgo"
-	"github.com/hwcer/logger"
-	"github.com/tealeg/xlsx/v3"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/hwcer/cosgo"
+	"github.com/hwcer/logger"
+
+	"github.com/xuri/excelize/v2"
 )
 
 func LoadExcel(dir string) {
@@ -28,15 +30,27 @@ func LoadExcel(dir string) {
 	}
 
 	var protoIndex int
+	var wb *excelize.File
 	for _, file := range files {
-		//wb, err := spreadsheet.Open(file)
-		wb, err := xlsx.OpenFile(file)
-		logger.Trace("解析文件:%v", file)
+		if strings.HasPrefix(filepath.Base(file), "~") {
+			continue
+		}
+		wb, err = excelize.OpenFile(file)
 		if err != nil {
 			logger.Fatal("excel文件格式错误:%v\n%v", file, err)
+			return
 		}
-		for _, sheet := range wb.Sheets {
-			for k, v := range parseSheet(sheet, file, dir) {
+
+		//wb, err := xlsx.OpenFile(file)
+		logger.Trace("解析文件:%v", file)
+
+		fileName := strings.TrimPrefix(file, dir)
+		for _, sheetName := range wb.GetSheetList() {
+			if strings.HasPrefix(sheetName, "~") {
+				continue
+			}
+
+			for k, v := range parseSheet(wb, fileName, sheetName) {
 				//lowerName := strings.ToLower(v.ProtoName)
 				if i, ok := filter[k]; ok {
 					logger.Alert("表格名字[%v]重复自动跳过", v.ProtoName)
@@ -51,6 +65,7 @@ func LoadExcel(dir string) {
 				}
 			}
 		}
+		_ = wb.Close()
 	}
 
 	if cosgo.Config.GetString(FlagsNameOut) != "" {
@@ -72,18 +87,13 @@ func LoadExcel(dir string) {
 	globalObjects = map[string]*Dummy{}
 }
 
-func parseSheet(v *xlsx.Sheet, file string, dir string) (sheets map[string]*Sheet) {
-	filename := filepath.Base(file)
-	if strings.HasPrefix(filename, "~") {
-		return nil
-	}
+func parseSheet(wb *excelize.File, fileName string, sheetName string) (sheets map[string]*Sheet) {
 	sheets = map[string]*Sheet{}
-	//countArr := []int{1, 101, 201, 301}
-	maxRow := v.MaxRow
-	logger.Trace("----开始读取表格[%v],共有%v行", v.Name, maxRow)
-	sheet := &Sheet{Sheet: v, SheetType: SheetTypeHash}
+	logger.Trace("----开始读取表格[%v]", sheetName)
+	sheet := &Sheet{excel: wb, SheetType: SheetTypeHash}
 	sheet.Name = Convert(sheet.Name)
-	sheet.FileName = strings.TrimPrefix(file, dir)
+	sheet.FileName = fileName
+	sheet.SheetName = sheetName
 	sheet.Parser = Config.Parser(sheet)
 	var ok bool
 	if sheet.Skip, sheet.SheetName, ok = sheet.Parser.Verify(); !ok {
@@ -92,19 +102,14 @@ func parseSheet(v *xlsx.Sheet, file string, dir string) (sheets map[string]*Shee
 	if sheet.SheetName, ok = VerifyName(sheet.SheetName); !ok {
 		return nil
 	}
-	//格式化ProtoName
+
 	sheet.ProtoName = TrimProtoName(sheet.SheetName)
-	if sheet.ProtoName == "" || strings.HasPrefix(sheet.Name, "~") || strings.HasPrefix(sheet.ProtoName, "~") {
+	if sheet.ProtoName == "" {
 		return nil
 	}
-	//var pt ParserSheetType
-	//if pt, ok = sheet.Parser.(ParserSheetType); ok {
-	//	sheet.SheetType, sheet.SheetIndex = pt.SheetType()
-	//}
 
 	fields := sheet.Parser.Fields()
 	if len(fields) == 0 {
-		//logger.Debug("表[%v]字段为空已经跳过", sheet.SheetName)
 		return nil
 	}
 	for pk, e := range Config.enums {
@@ -157,27 +162,7 @@ func parseSheet(v *xlsx.Sheet, file string, dir string) (sheets map[string]*Shee
 			fieldsMap[field.Name] = field
 		}
 	}
-
-	//sheet.Fields = fields
-	//if sheet.SheetType == SheetTypeEnum {
-	//	sheet.reParseEnum()
-	//}
-	////ARRAY
-	//if sheet.SheetType == SheetTypeArray {
-	//	name := Config.ProtoNameFilter(SheetTypeHash, sheet.ProtoName)
-	//	dummy := NewDummy(name)
-	//	for _, field := range sheet.Fields {
-	//		if len(field.Index) > 0 {
-	//			_ = dummy.Add(field.Name, field.ProtoType, field.Index[0])
-	//		}
-	//	}
-	//	globalObjects.Insert(sheet, dummy, true)
-	//	sheet.DummyName = dummy.Name
-	//	sheet.ProtoName = sheet.ProtoName + Config.ArraySuffix
-	//}
-	//protoName := sheet.ProtoName
 	if len(sheet.Fields) > 0 {
-		//sheet.ProtoName = Config.ProtoNameFilter(sheet, sheet.ProtoName)
 		sheets[strings.ToUpper(sheet.SheetName)] = sheet
 	}
 	for _, s := range sheet.sheetAttach {
@@ -186,26 +171,10 @@ func parseSheet(v *xlsx.Sheet, file string, dir string) (sheets map[string]*Shee
 			if newSheet := sheet.reParseEnum(s); newSheet != nil && len(newSheet.Fields) > 0 {
 				sheets[strings.ToUpper(newSheet.SheetName)] = newSheet
 			}
-		//case SheetTypeArray:
-		//	if newSheet := sheet.reParseArray(s); newSheet != nil && len(newSheet.Fields) > 0 {
-		//		newSheet.ProtoName = Config.ProtoNameFilter(newSheet.SheetType, newSheet.ProtoName)
-		//		sheets[s.k] = newSheet
-		//	}
 		default:
 
 		}
 	}
 
-	//格外的Struct
-	//if ev := Config.enums[sheet.ProtoName]; ev != nil {
-	//	newSheet := *sheet
-	//	newSheet.ProtoName = ev.Name
-	//	newSheet.SheetType = SheetTypeEnum
-	//	newSheet.SheetIndex = ev.Index
-	//	newSheet.reParseEnum()
-	//	if len(newSheet.Fields) > 0 {
-	//		sheets[newSheet.ProtoName] = &newSheet
-	//	}
-	//}
 	return
 }

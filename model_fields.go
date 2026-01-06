@@ -2,10 +2,10 @@ package xlsx
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/hwcer/cosgo"
 	"github.com/hwcer/logger"
-	"github.com/tealeg/xlsx/v3"
-	"strings"
 )
 
 // Field 基础字段
@@ -54,7 +54,7 @@ func (this *Field) GetBranch() *Field {
 }
 
 // Value 根据一行表格获取值
-func (this *Field) Value(shell *Sheet, row *xlsx.Row) (ret any, err error) {
+func (this *Field) Value(shell *Sheet, row []string) (ret any, err error) {
 	handle := Require(this.ProtoType)
 	if len(this.Dummy) > 0 {
 		ret, err = this.getDummyValue(shell, row, handle)
@@ -70,15 +70,15 @@ func (this *Field) Value(shell *Sheet, row *xlsx.Row) (ret any, err error) {
 }
 
 // getProtoValue 基础和预定义类型
-func (this *Field) getProtoValue(shell *Sheet, row *xlsx.Row, handle ProtoBuffParse) (any, error) {
+func (this *Field) getProtoValue(shell *Sheet, row []string, handle ProtoBuffParse) (any, error) {
 	index := this.Index
 	if len(index) == 0 {
 		return nil, fmt.Errorf("字段名:%v,错误信息:%v", this.Name, "缺少有效的数据列")
 	}
 	var vs []string
 	for _, i := range index {
-		if c := row.GetCell(i); c != nil && !Config.Empty(c.Value) {
-			vs = append(vs, c.Value)
+		if i < len(row) && !Config.Empty(row[i]) {
+			vs = append(vs, row[i])
 		} else {
 			this.hasEmptyValue(shell, row)
 		}
@@ -93,7 +93,7 @@ func (this *Field) getProtoValue(shell *Sheet, row *xlsx.Row, handle ProtoBuffPa
 }
 
 // getDummyValue 内置对象
-func (this *Field) getDummyValue(shell *Sheet, row *xlsx.Row, handle ProtoBuffParse) (any, error) {
+func (this *Field) getDummyValue(shell *Sheet, row []string, handle ProtoBuffParse) (any, error) {
 	var rs []any
 	for _, c := range this.Dummy {
 		if v, e := c.Value(row); e != nil {
@@ -119,9 +119,12 @@ func (this *Field) getDummyValue(shell *Sheet, row *xlsx.Row, handle ProtoBuffPa
 	}
 }
 
-func (this *Field) hasEmptyValue(shell *Sheet, row *xlsx.Row) {
+func (this *Field) hasEmptyValue(shell *Sheet, row []string) {
 	if cosgo.Config.GetBool(FlagsNameVerify) {
-		id := row.GetCell(0).Value
+		id := ""
+		if len(row) > 0 {
+			id = row[0]
+		}
 		if id != "" {
 			logger.Alert("空值警告 sheet:%s id:%s , field:%s", shell.SheetName, id, this.Name)
 		}
