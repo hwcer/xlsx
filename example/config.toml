@@ -5,6 +5,5 @@ json="./output/data/"
 ignore=""
 branch=""
 
-[enum.Base]
-src="Base"
-index=[0,1,2,-1]
+GOPackage="configs"
+CSPackage="Cosnet.configs"

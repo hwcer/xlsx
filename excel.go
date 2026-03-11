@@ -112,13 +112,13 @@ func parseSheet(wb *excelize.File, fileName string, sheetName string) (sheets ma
 	if len(fields) == 0 {
 		return nil
 	}
-	for pk, e := range Config.enums {
-		if e.Src == sheet.ProtoName {
-			if err := sheet.AddEnum(pk, e.Index); err != nil {
-				logger.Trace("add enums:%v   error:%v", pk, err)
-			}
-		}
-	}
+	//for pk, e := range Config.enums {
+	//	if e.Src == sheet.ProtoName {
+	//		if err := sheet.AddEnum(pk, e.Index); err != nil {
+	//			logger.Trace("add enums:%v   error:%v", pk, err)
+	//		}
+	//	}
+	//}
 
 	var index int
 	fieldsMap := map[string]*Field{}

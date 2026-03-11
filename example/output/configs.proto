@@ -1,5 +1,6 @@
 syntax = "proto3";
-option go_package = "./;protoc";
+option go_package = "./;configs";
+option csharp_namespace = "Cosnet.configs";
 package protoc;
 
 //全局对象......
@@ -49,14 +50,12 @@ message Activity{
 // Sheet:
 // File:\测试表.xlsx
 message Base{
-	int32 lv = 1; //
-	int64 exp = 2; //
-	string name = 3; //
+	string id = 1; //活动
 }
 
-message configs{
+message summary{
 	map<int32,Emitter> Emitter=1;
 	Events Events=2;
 	map<int32,Activity> Activity=3;
-	Base Base=4;
+	map<string,Base> Base=4;
 }

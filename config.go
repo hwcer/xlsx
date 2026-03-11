@@ -48,11 +48,13 @@ type enum struct {
 }
 
 type config struct {
-	enums                 map[string]*enum
+	//enums                 map[string]*enum
 	Types                 map[string]SheetType //表结构
 	Proto                 string               //proto 文件名
 	Empty                 func(string) bool    //检查是否为空
 	Package               string               //包名
+	GOPackage             string               //Go包名,默认使用Package
+	CSPackage             string               //C#包名,默认使用Package
 	Parser                func(*Sheet) Parser  //解析器
 	Summary               string               //总表名,留空不生成总表
 	Message               func() string        //可以加人proto全局对象
@@ -65,12 +67,12 @@ type config struct {
 }
 
 var Config = &config{
-	enums:                map[string]*enum{},
+	//enums:                map[string]*enum{},
 	Types:                map[string]SheetType{},
 	Proto:                "configs.proto",
 	Empty:                func(s string) bool { return s == "" },
-	Package:              "data",
-	Summary:              "data",
+	Package:              "protoc",
+	Summary:              "summary",
 	Language:             []string{"text", "lang", "language"},
 	LanguageNewSheetName: "多语言文本",
 }

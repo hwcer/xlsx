@@ -2,15 +2,17 @@ package xlsx
 
 import (
 	"fmt"
-	"github.com/hwcer/logger"
 	"strings"
 	"text/template"
+
+	"github.com/hwcer/logger"
 )
 
 var tpl *template.Template
 
 const TemplateTitle = `syntax = "proto3";
-option go_package = "./;<% .Package %>";
+option go_package = "./;<% .GOPackage %>";
+option csharp_namespace = "<% .CSPackage %>";
 package <% .Package %>;
 `
 
@@ -100,11 +102,25 @@ func ProtoTitle(builder *strings.Builder) {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	data := &struct {
-		Package string
-	}{
-		Package: Config.Package,
+	goPackage := Config.GOPackage
+	if goPackage == "" {
+		goPackage = Config.Package
 	}
+	csPackage := Config.CSPackage
+	if csPackage == "" {
+		csPackage = Config.Package
+	}
+	data := &struct {
+		Package   string
+		GOPackage string
+		CSPackage string
+	}{
+		Package:   Config.Package,
+		GOPackage: goPackage,
+		CSPackage: csPackage,
+	}
+	//fmt.Printf("go_package: %v\n", goPackage)
+	//fmt.Printf("csharp_namespace: %v\n", csPackage)
 	err = t.Execute(builder, data)
 	if err != nil {
 		logger.Fatal(err)
