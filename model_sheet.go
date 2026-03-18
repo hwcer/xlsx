@@ -260,7 +260,7 @@ func (this *Sheet) kv() (any, []error) {
 	for i := this.Skip; i <= maxRow; i++ {
 		row := this.GetRow(i)
 		if row == nil {
-			break
+			continue
 		}
 		if field := this.SearchByTag(i); field != nil {
 			var data any
@@ -290,7 +290,7 @@ func (this *Sheet) hash() (any, []error) {
 	for i := this.Skip; i <= maxRow; i++ {
 		row := this.GetRow(i)
 		if row == nil {
-			break
+			continue
 		}
 
 		id := ""
@@ -345,7 +345,7 @@ func (this *Sheet) Language(r map[string]string, types map[string]bool) {
 	for i := this.Skip; i <= maxRow; i++ {
 		row := this.GetRow(i)
 		if row == nil {
-			break
+			continue
 		}
 		id := ""
 		if len(row) > 0 {
