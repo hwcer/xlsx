@@ -3,6 +3,7 @@ package xlsx
 import (
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 type ProtoBuffType string
@@ -113,6 +114,7 @@ func (this *ProtoBuffParseDefault) Value(vs ...string) (r any, err error) {
 		if v == "" {
 			r = float64(0)
 		} else {
+			v = this.trimInt(v)
 			r, err = strconv.ParseFloat(v, 64)
 		}
 	case ProtoBuffTypeBool:
@@ -135,8 +137,15 @@ func (*ProtoBuffParseDefault) Repeated() bool {
 
 func (*ProtoBuffParseDefault) trimInt(s string) string {
 	s = Convert(s)
-	if i := strings.Index(s, "."); i > 0 {
-		s = s[0:i]
+	result := strings.Builder{}
+	hasDigit := false
+	for _, ch := range s {
+		if unicode.IsDigit(ch) || (ch == '-' && !hasDigit) || ch == '.' {
+			result.WriteRune(ch)
+			if unicode.IsDigit(ch) {
+				hasDigit = true
+			}
+		}
 	}
-	return strings.TrimSpace(s)
+	return result.String()
 }
