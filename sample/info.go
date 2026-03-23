@@ -1,10 +1,11 @@
-package main
+package sample
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/hwcer/cosgo"
 	"github.com/hwcer/xlsx"
-	"strings"
 )
 
 const FlagsNameInfo string = "info"

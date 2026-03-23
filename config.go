@@ -68,11 +68,11 @@ type config struct {
 
 var Config = &config{
 	//enums:                map[string]*enum{},
-	Types:                map[string]SheetType{},
-	Proto:                "configs.proto",
-	Empty:                func(s string) bool { return s == "" },
-	Package:              "protoc",
-	Summary:              "summary",
+	Types: map[string]SheetType{},
+	Proto: "configs.proto",
+	Empty: func(s string) bool { return s == "" },
+	//Package:              "protoc",
+	//Summary:              "summary",
 	Language:             []string{"text", "lang", "language"},
 	LanguageNewSheetName: "多语言文本",
 }

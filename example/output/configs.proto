@@ -4,23 +4,42 @@ option csharp_namespace = "Cosnet.configs";
 package protoc;
 
 //全局对象......
-//sign:IdInt32NumInt32
-message IdInt32NumInt32{ 
-	int32 id = 1; 
-	int32 num = 2; 
-}
 //sign:IdInt32NumInt32PerInt32
 message IdInt32NumInt32PerInt32{ 
 	int32 id = 1; 
 	int32 num = 2; 
 	int32 per = 3; 
 }
+//sign:IdInt32NumInt32
+message IdInt32NumInt32{ 
+	int32 id = 1; 
+	int32 num = 2; 
+}
 
 //数据对象......
 
 // Sheet:
+// File:\全局事件.xlsx
+message EmitterRow{
+	int32 id = 1; //事件ID
+	string name = 2; //事件名称
+	string type = 3; //类型
+	int32 Daily = 4; //日常
+	int32 Record = 5; //成就
+	int32 Events = 6; //是否触发事件
+	int32 update = 7; //允许客户端更新数据
+	int32 replace = 8; //数据更新模式
+}
+// Sheet:
+// File:\全局事件.xlsx
+message EventsTable{
+	int32 login = 1; //1
+	int32 score = 2; //2
+	int32 order = 3; //3
+}
+// Sheet:
 // File:\测试表.xlsx
-message Activity{
+message ActivityRow{
 	int32 id = 1; //活动
 	string TType = 2; //时间格式
 	repeated int32 Arr = 3; //
@@ -28,7 +47,8 @@ message Activity{
 	repeated IdInt32NumInt32 ArrObj = 5; //id
 	repeated float ArrFloat = 6; //1.1
 }
-
-message summary{
-	map<int32,Activity> Activity=1;
+// Sheet:
+// File:\测试表.xlsx
+message BaseRow{
+	string id = 1; //活动
 }
