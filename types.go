@@ -138,5 +138,5 @@ func (*ProtoBuffParseDefault) trimInt(s string) string {
 	if i := strings.Index(s, "."); i > 0 {
 		s = s[0:i]
 	}
-	return s
+	return strings.TrimSpace(s)
 }
