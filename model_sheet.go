@@ -186,7 +186,7 @@ func (this *Sheet) reParseEnum(attach *SheetAttach) *Sheet {
 	for i := this.Skip; i <= maxRow; i++ {
 		row := this.GetRow(i)
 		if row == nil {
-			break
+			continue
 		}
 		key := ""
 		if indexes[0] < len(row) {
@@ -259,7 +259,8 @@ func (this *Sheet) kv() (any, []error) {
 	//}
 	for i := this.Skip; i <= maxRow; i++ {
 		row := this.GetRow(i)
-		if row == nil {
+		//row := rows[i]
+		if len(row) == 0 {
 			continue
 		}
 		if field := this.SearchByTag(i); field != nil {
