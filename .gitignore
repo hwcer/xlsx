@@ -1,5 +1,6 @@
 .idea
 .vscode
+.claude
 *.iml
 *.out
 *.pid
@@ -10,3 +11,4 @@ logs
 developer
 private.toml
 static/etu
+example/data
