@@ -142,6 +142,7 @@ func (this *Field) ending(value string, index int, suffix string, protoType cosx
 //   - [...]: 数组类型（根据基础类型确定具体数组类型）
 //   - {...}: 对象类型
 //   - <name>: 字段名声明格式
+//   - field.dummy[{...}] / field.dummy{...}: 显式指定字段名与子结构体名,子结构体名将按PROTO命名规范格式化
 func (this *Field) parse(fieldType cosxls.ProtoBuffType, value string, index int) (end bool) {
 	if fieldType == "" {
 		return false
@@ -154,7 +155,7 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, value string, index int
 	}
 	//var protoName string
 	var dummyName string
-	if i, j := strings.Index(value, "<"), strings.Index(value, ">"); i >= 0 && j >= 0 {
+	if i, j := strings.Index(value, "<"), strings.Index(value, ">"); i >= 0 && j > i {
 		this.Name = cosxls.FirstUpper(value[i+1 : j])
 		dummyName = value[i+1 : j]
 		value = value[j+1:]
@@ -167,6 +168,10 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, value string, index int
 		name = value[0:i]
 		suffix = value[i+2:]
 		this.flags = append(this.flags, "]", "}")
+		if d := strings.Index(name, "."); d >= 0 {
+			dummyName = cosxls.TrimProtoName(name[d+1:])
+			name = name[:d]
+		}
 		this.Dummy = append(this.Dummy, cosxls.NewDummy(dummyName))
 		protoType = FieldTypeArrayObject
 	} else if i = strings.Index(value, "["); i >= 0 {
@@ -174,14 +179,19 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, value string, index int
 		name = value[0:i]
 		//suffix = value[i:]
 		this.flags = append(this.flags, "]")
-		if fieldType == cosxls.ProtoBuffTypeString {
+		switch fieldType {
+		case cosxls.ProtoBuffTypeString:
 			protoType = FieldTypeArrayString
-		} else if fieldType == cosxls.ProtoBuffTypeInt32 {
+		case cosxls.ProtoBuffTypeInt32:
 			protoType = FieldTypeArrayInt
-		} else if fieldType == cosxls.ProtoBuffTypeInt64 {
+		case cosxls.ProtoBuffTypeInt64:
 			protoType = FieldTypeArrayInt64
-		} else if fieldType == cosxls.ProtoBuffTypeFloat {
+		case cosxls.ProtoBuffTypeFloat:
 			protoType = FieldTypeArrayFloat
+		case cosxls.ProtoBuffTypeDouble:
+			protoType = FieldTypeArrayFloat64
+		default:
+			logger.Fatal("不支持的数组元素类型:%v (字段:%v)", fieldType, name)
 		}
 
 	} else if i = strings.Index(value, "{"); i >= 0 {
@@ -189,6 +199,10 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, value string, index int
 		name = value[0:i]
 		suffix = value[i+1:]
 		this.flags = append(this.flags, "}")
+		if d := strings.Index(name, "."); d >= 0 {
+			dummyName = cosxls.TrimProtoName(name[d+1:])
+			name = name[:d]
+		}
 		this.Dummy = append(this.Dummy, cosxls.NewDummy(dummyName))
 		protoType = FieldTypeObject
 	} else {

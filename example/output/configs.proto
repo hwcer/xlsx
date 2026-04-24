@@ -1,7 +1,12 @@
 syntax = "proto3";
-option go_package = "./;configs";
-option csharp_namespace = "Cosnet.configs";
-package protoc;
+
+// 打表全局对象
+// 普通掉落对象
+message Reward{ 
+    int32 id = 1; 
+    int32 num = 2; 
+}
+
 
 //全局对象......
 //sign:IdInt32NumInt32PerInt32
@@ -20,7 +25,7 @@ message IdInt32NumInt32{
 
 // Sheet:
 // File:\全局事件.xlsx
-message EmitterRow{
+message Emitter{
 	int32 id = 1; //事件ID
 	string name = 2; //事件名称
 	string type = 3; //类型
@@ -32,23 +37,38 @@ message EmitterRow{
 }
 // Sheet:
 // File:\全局事件.xlsx
-message EventsTable{
+message Events{
 	int32 login = 1; //1
 	int32 score = 2; //2
 	int32 order = 3; //3
 }
 // Sheet:
 // File:\测试表.xlsx
-message ActivityRow{
+message Activity{
 	int32 id = 1; //活动
 	string TType = 2; //时间格式
 	repeated int32 Arr = 3; //
 	IdInt32NumInt32PerInt32 Obj = 4; //
 	repeated IdInt32NumInt32 ArrObj = 5; //id
 	repeated float ArrFloat = 6; //1.1
+	Reward items = 7; //使用内置子对象
 }
 // Sheet:
 // File:\测试表.xlsx
-message BaseRow{
+message BaseObj{
+	int32 lv = 1; //等级
+	int64 exp = 2; //经验
+	string name = 3; //名称
+}
+// Sheet:
+// File:\测试表.xlsx
+message Baseenum{
+	int32 lv = 1; //等级
+	int64 exp = 2; //经验
+	string name = 3; //名称
+}
+// Sheet:
+// File:\测试表.xlsx
+message Base{
 	string id = 1; //活动
 }

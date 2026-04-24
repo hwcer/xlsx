@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+// 打表全局对象
+// 普通掉落对象
+message Reward{ 
+    int32 id = 1; 
+    int32 num = 2; 
+}
+

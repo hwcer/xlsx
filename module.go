@@ -65,16 +65,15 @@ func (this *Module) Start() error {
 	if err := cosgo.Config.Unmarshal(Config); err != nil {
 		return err
 	}
-	//var enums = map[string]*enum{}
-	//if err := cosgo.Config.UnmarshalKey("enum", &enums); err != nil {
-	//	return err
-	//}
-	//Config.enums = map[string]*enum{}
-	//for k, v := range enums {
-	//	pk := TrimProtoName(k)
-	//	v.Src = TrimProtoName(v.Src)
-	//	Config.enums[pk] = v
-	//}
+	var enums = map[string]*enum{}
+	if err := cosgo.Config.UnmarshalKey("enum", &enums); err != nil {
+		return err
+	}
+	for k, v := range enums {
+		pk := TrimProtoName(k)
+		v.Src = TrimProtoName(v.Src)
+		Config.enums[pk] = v
+	}
 
 	preparePath()
 	LoadExcel(cosgo.Config.GetString(FlagsNameIn))

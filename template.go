@@ -2,6 +2,7 @@ package xlsx
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"text/template"
 
@@ -98,6 +99,14 @@ func TemplateSummaryType(sheet *Sheet) (r string) {
 }
 
 func ProtoTitle(builder *strings.Builder) {
+	if Config.ProtoHeader != "" {
+		data, err := os.ReadFile(Config.ProtoHeader)
+		if err != nil {
+			logger.Fatal(err)
+		}
+		builder.Write(data)
+		return
+	}
 	t, err := tpl.Parse(TemplateTitle)
 	if err != nil {
 		logger.Fatal(err)

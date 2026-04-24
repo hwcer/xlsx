@@ -25,22 +25,6 @@ type Parser interface {
 	Fields() []*Field                         //表格字段
 }
 
-//type ParserSheetType interface {
-//	SheetType() (SheetType, [4]int)
-//}
-
-// ParserNewStruct 是否生成一个新对象
-// name 如果与原始Sheet重名,将覆盖
-// index 索引:  key,val,type,desc
-// type,desc 为-1时将省力,类型一律为int32
-//type ParserNewStruct interface {
-//	NewStruct() map[string][4]int
-//}
-
-//type ParserStructIndex interface {
-//	StructIndex() [4]int
-//}
-
 type enum struct {
 	Src string `json:"src"`
 	//Name  string `json:"name"`
@@ -48,7 +32,7 @@ type enum struct {
 }
 
 type config struct {
-	//enums                 map[string]*enum
+	enums                 map[string]*enum     //枚举配置,key:新枚举名,value.Src:源表ProtoName,value.Index:[key,val,type,desc]列索引
 	Types                 map[string]SheetType //表结构
 	Proto                 string               //proto 文件名
 	Empty                 func(string) bool    //检查是否为空
@@ -60,21 +44,24 @@ type config struct {
 	Message               func() string        //可以加人proto全局对象
 	Language              []string             //多语言文本包含的类型
 	Outputs               []Output             //附加输出插件
+	ProtoHeader           string               //可选,指向一个现有proto文件,其内容将替代TemplateTitle作为文件头部
 	JsonNameFilter        func(*Sheet) string  //JSON文件名字
 	ProtoNameFilter       func(*Sheet) string  //过滤器
 	LanguageNewSheetName  string               //多语言增量页签名
 	EnableGlobalDummyName bool                 //允许自定义全局对象名
+	NamedDummyInHeader    bool                 //命名子对象假定已在 ProtoHeader 中声明,生成 proto 时跳过其 message 定义(避免与头文件重复)
 }
 
 var Config = &config{
-	//enums:                map[string]*enum{},
+	enums: map[string]*enum{},
 	Types: map[string]SheetType{},
 	Proto: "configs.proto",
 	Empty: func(s string) bool { return s == "" },
 	//Package:              "protoc",
 	//Summary:              "summary",
-	Language:             []string{"text", "lang", "language"},
-	LanguageNewSheetName: "多语言文本",
+	Language:              []string{"text", "lang", "language"},
+	LanguageNewSheetName:  "多语言文本",
+	EnableGlobalDummyName: true,
 }
 
 func JsonNameFilterDefault(s *Sheet) string {
@@ -104,6 +91,15 @@ func (this *config) GetType(name string) SheetType {
 
 func (this *config) SetOutput(o Output) {
 	this.Outputs = append(this.Outputs, o)
+}
+
+// SetEnum 注册一个枚举生成规则
+// name 新生成的枚举名; src 源表ProtoName; index [key,val,type,desc]列索引,type/desc为-1表示省略
+func (this *config) SetEnum(name, src string, index [4]int) {
+	if this.enums == nil {
+		this.enums = map[string]*enum{}
+	}
+	this.enums[TrimProtoName(name)] = &enum{Src: TrimProtoName(src), Index: index}
 }
 
 func (this *config) SetJsonNameFilter(f func(*Sheet) string) {

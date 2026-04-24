@@ -80,6 +80,9 @@ func buildGlobalObjects(b *strings.Builder, sheets []*Sheet) {
 		//if dummy.Name == "" {
 		//	dummy.Name = globalObjects.Name(dummy)
 		//}
+		if Config.NamedDummyInHeader && dummy.Name != dummy.Label {
+			continue
+		}
 		ProtoDummy(dummy, b)
 	}
 
