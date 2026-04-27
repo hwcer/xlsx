@@ -28,6 +28,8 @@ func (this GlobalDummy) Insert(sheet *Sheet, d *Dummy, must ...bool) {
 			}
 		}
 		this[d.Name] = d
+	} else if !Config.EnableGlobalDummyName {
+		logger.Fatal("系统设置不允许自动生成子对象名称,必须显式指定子对象名称: %v.%v", sheet.ProtoName, label)
 	} else {
 		d.Name = label
 		if _, ok := this[label]; !ok {
