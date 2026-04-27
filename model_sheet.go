@@ -15,10 +15,10 @@ type GlobalDummy map[string]*Dummy
 var ignoreFiles []string
 var globalObjects = GlobalDummy{}
 
-func (this GlobalDummy) Insert(sheet *Sheet, d *Dummy, must ...bool) {
+func (this GlobalDummy) Insert(sheet *Sheet, d *Dummy) {
 	label := d.Compile()
-	if !Config.EnableGlobalDummyName && (len(must) == 0 || !must[0]) {
-		d.Name = ""
+	if !Config.EnableGlobalDummyName && d.Name == "" {
+		logger.Fatal("系统设置不允许自动生成子对象名称,必须显式指定子对象名称: %v.%v", sheet.ProtoName, label)
 	}
 	if d.Name != "" {
 		if v, ok := this[d.Name]; ok {
@@ -28,8 +28,6 @@ func (this GlobalDummy) Insert(sheet *Sheet, d *Dummy, must ...bool) {
 			}
 		}
 		this[d.Name] = d
-	} else if !Config.EnableGlobalDummyName {
-		logger.Fatal("系统设置不允许自动生成子对象名称,必须显式指定子对象名称: %v.%v", sheet.ProtoName, label)
 	} else {
 		d.Name = label
 		if _, ok := this[label]; !ok {
@@ -368,11 +366,25 @@ func (this *Sheet) Language(r map[string]string, types map[string]bool) {
 // GlobalObjectsProtoName 通过ProtoName生成子对象
 func (this *Sheet) GlobalObjectsProtoName() {
 	for _, field := range this.Fields {
-		if len(field.Dummy) > 0 {
-			for _, dummy := range field.Dummy {
-				globalObjects.Insert(this, dummy)
+		if len(field.Dummy) == 0 {
+			continue
+		}
+		var name string
+		for _, dummy := range field.Dummy {
+			if dummy.Name != "" {
+				name = dummy.Name
+				break
 			}
 		}
+		for _, dummy := range field.Dummy {
+			if dummy.Name == "" {
+				dummy.Name = name
+			}
+		}
+		if Config.NamedDummyInHeader && name != "" {
+			continue
+		}
+		globalObjects.Insert(this, field.Dummy[0])
 	}
 }
 

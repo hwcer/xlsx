@@ -111,15 +111,16 @@ ProtoHeader = "./header.proto"
 
 #### 配合 `NamedDummyInHeader` 避免子对象重复
 
-若 Excel 中用 `<Name>` / `field.Name{...}` 等语法显式命名了子对象,且这些对象已在 `ProtoHeader` 文件中声明过,可启用该选项跳过它们的自动 `message` 生成,避免与头文件重复定义导致 protoc 编译失败:
+若 Excel 中用 `<Name>` / `field.Name{...}` 等语法显式命名了子对象,且这些对象已在 `ProtoHeader` 文件中声明过,可启用该选项跳过它们的 `message` 生成,避免与头文件重复定义导致 protoc 编译失败:
 
 ```toml
-ProtoHeader        = "./base.proto"
-EnableGlobalDummyName = true        # 保留显式命名(否则名字会被擦除为自动生成的签名)
+ProtoHeader           = "./base.proto"
+EnableGlobalDummyName = false       # 禁止自动生成子对象名称,必须通过 field.Name{} 显式指定
 NamedDummyInHeader    = true        # 命名子对象假定已在 base.proto 中声明,跳过生成
 ```
 
-匿名子对象(未通过 `<>` 或 `.` 指定名字的嵌套对象)仍会按签名自动命名并写入输出 proto。
+- 显式命名的子对象(通过 `<>` 或 `.Name` 指定)不会注册到全局对象,视为已在 `ProtoHeader` 中定义
+- 匿名子对象(未指定名字的嵌套对象)仍会按签名自动命名并写入输出 proto(`EnableGlobalDummyName` 须为 `true`)
 
 ### 枚举配置 `[enum]`
 
@@ -168,8 +169,8 @@ xlsx.Config.SetEnum("ItemType", "Item", [4]int{0, 1, 2, 3})
 - `Config.Message func() string`:向 proto 注入额外全局对象
 - `Config.Language []string`:被视为多语言文本的 `FieldType`(默认 `text`/`lang`/`language`)
 - `Config.LanguageNewSheetName`:多语言增量页签名(默认 `多语言文本`)
-- `Config.EnableGlobalDummyName bool`:是否允许嵌套对象使用自定义名
-- `Config.NamedDummyInHeader bool`:命名子对象假定已在 `ProtoHeader` 中声明,跳过其 `message` 输出(避免与头文件重复)
+- `Config.EnableGlobalDummyName bool`:是否允许未显式命名的子对象按签名自动生成名称;为 `false` 时所有子对象必须通过 `.Name{}`/`<Name>` 显式命名
+- `Config.NamedDummyInHeader bool`:显式命名的子对象假定已在 `ProtoHeader` 中声明,不注册到全局对象也不生成 `message`(避免与头文件重复)
 
 ## Parser 约定
 

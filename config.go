@@ -48,8 +48,8 @@ type config struct {
 	JsonNameFilter        func(*Sheet) string  //JSON文件名字
 	ProtoNameFilter       func(*Sheet) string  //过滤器
 	LanguageNewSheetName  string               //多语言增量页签名
-	EnableGlobalDummyName bool                 //允许自定义全局对象名
-	NamedDummyInHeader    bool                 //命名子对象假定已在 ProtoHeader 中声明,生成 proto 时跳过其 message 定义(避免与头文件重复)
+	EnableGlobalDummyName bool                 //允许未显式命名的子对象按签名自动生成名称,为false时必须通过.Name{}/<Name>显式命名
+	NamedDummyInHeader    bool                 //显式命名的子对象假定已在ProtoHeader中声明,不注册到全局对象也不生成message定义
 }
 
 var Config = &config{

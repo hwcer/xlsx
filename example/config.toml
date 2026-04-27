@@ -11,7 +11,7 @@ CSPackage="Cosnet.configs"
 
 
 ProtoHeader="./base.proto"
-EnableGlobalDummyName=true
+EnableGlobalDummyName=false
 NamedDummyInHeader=true
 
 [enum.BaseEnum]

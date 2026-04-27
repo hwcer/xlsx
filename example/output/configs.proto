@@ -9,17 +9,6 @@ message Reward{
 
 
 //全局对象......
-//sign:IdInt32NumInt32PerInt32
-message IdInt32NumInt32PerInt32{ 
-	int32 id = 1; 
-	int32 num = 2; 
-	int32 per = 3; 
-}
-//sign:IdInt32NumInt32
-message IdInt32NumInt32{ 
-	int32 id = 1; 
-	int32 num = 2; 
-}
 
 //数据对象......
 
@@ -48,21 +37,21 @@ message Activity{
 	int32 id = 1; //活动
 	string TType = 2; //时间格式
 	repeated int32 Arr = 3; //
-	IdInt32NumInt32PerInt32 Obj = 4; //
-	repeated IdInt32NumInt32 ArrObj = 5; //id
+	Drop Obj = 4; //
+	repeated Item ArrObj = 5; //id
 	repeated float ArrFloat = 6; //1.1
 	Reward items = 7; //使用内置子对象
 }
 // Sheet:
 // File:\测试表.xlsx
-message BaseObj{
+message Baseenum{
 	int32 lv = 1; //等级
 	int64 exp = 2; //经验
 	string name = 3; //名称
 }
 // Sheet:
 // File:\测试表.xlsx
-message Baseenum{
+message BaseObj{
 	int32 lv = 1; //等级
 	int64 exp = 2; //经验
 	string name = 3; //名称
