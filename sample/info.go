@@ -30,15 +30,16 @@ func (i infoOutput) JsonNameFilter(sheet *xlsx.Sheet) string {
 }
 
 func (i infoOutput) ProtoNameFilter(sheet *xlsx.Sheet) string {
-	tag := strings.ToUpper(cosgo.Config.GetString(xlsx.FlagsNameTag))
-	if tag != "C" {
-		return sheet.ProtoName
-	}
-	if sheet.SheetType == xlsx.SheetTypeHash {
-		return fmt.Sprintf("%sRow", sheet.ProtoName)
-	} else {
-		return fmt.Sprintf("%sTable", sheet.ProtoName)
-	}
+	return sheet.ProtoName
+	//tag := strings.ToUpper(cosgo.Config.GetString(xlsx.FlagsNameTag))
+	//if tag != "C" {
+	//	return sheet.ProtoName
+	//}
+	//if sheet.SheetType == xlsx.SheetTypeHash {
+	//	return fmt.Sprintf("%sRow", sheet.ProtoName)
+	//} else {
+	//	return fmt.Sprintf("%sTable", sheet.ProtoName)
+	//}
 }
 
 func (i infoOutput) Writer(sheets []*xlsx.Sheet) {
