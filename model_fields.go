@@ -13,6 +13,7 @@ import (
 // Field.ProtoType 除proto基础数据类型外还可以自定义类型  array, arrInt,arrObj...
 type Field struct {
 	Name       string            //字段名字
+	side       string            //字段归属标记(S:服务器,C:客户端),用于区分前后端字段
 	Index      []int             //字段关联的CELL索引
 	Dummy      []*Dummy          //子对象
 	FieldType  string            //表格中定义的原始字段类型
@@ -20,17 +21,25 @@ type Field struct {
 	ProtoType  ProtoBuffType     //PROTO字段类型,和SheetType有一定的关联性
 	ProtoIndex int               //proto index 自动生产
 	Branch     map[string]*Field //版本分支,仅影响数据，不影响结构,不支持子对象
-	tag        int               //kv 模式下第几列产生的
+	kvRow      int               //kv 模式下第几行产生的
+}
+
+func NewField(name, side string) *Field {
+	return &Field{Name: name, side: side}
+}
+
+func (this *Field) Side() string {
+	return this.side
 }
 
 func (this *Field) Type() string {
 	if len(this.Dummy) > 0 {
 		return this.Dummy[0].Name
-	} else if handle := Require(this.ProtoType); handle != nil {
-		return handle.Type()
-	} else {
-		return string(this.ProtoType)
 	}
+	if handle := Require(this.ProtoType); handle != nil {
+		return handle.Type()
+	}
+	return string(this.ProtoType)
 }
 
 func (this *Field) SetBranch(k string, v *Field) {

@@ -37,14 +37,12 @@ func (this GlobalDummy) Insert(sheet *Sheet, d *Dummy) {
 }
 
 type Sheet struct {
-	//*xlsx.Sheet
-	//Rows         [][]string
-
-	Name         string                  //
+	Name         string
 	Skip         int                     //数据表中数据部分需要跳过的行数
 	Parser       Parser                  //解析器
 	Fields       []*Field                //字段列表
 	FileName     string                  //文件名
+	side         string                  //表名归属标记(S:服务器,C:客户端),用于区分前后端
 	ProtoName    string                  // protoName 是pb.go中文件的名字，
 	SheetType    SheetType               //输出类型,kv map
 	SheetName    string                  //原名
@@ -61,15 +59,6 @@ type SheetAttach struct {
 	v [4]int
 }
 
-//const RowId = "id"
-
-//	type rowArr struct {
-//		Coll []any
-//	}
-
-// GetRows 获取工作表的所有行数据
-// 该方法会缓存行数据，避免重复读取Excel文件
-// 返回：包含所有行的二维字符串数组，如果获取失败则返回nil
 func (this *Sheet) GetRows() [][]string {
 	var err error
 	if this.rows == nil {
@@ -81,12 +70,6 @@ func (this *Sheet) GetRows() [][]string {
 	return this.rows
 }
 
-// GetRow 获取指定索引的行数据
-// 参数：
-//
-//	index: 行索引（从0开始）
-//
-// 返回：指定行的字符串数组，如果索引超出范围则返回nil
 func (this *Sheet) GetRow(index int) []string {
 	rows := this.GetRows()
 	if index >= len(rows) {
@@ -95,8 +78,6 @@ func (this *Sheet) GetRow(index int) []string {
 	return rows[index]
 }
 
-// MaxRow 获取工作表的最大行数
-// 返回：工作表的总行数，如果没有行数据则返回0
 func (this *Sheet) MaxRow() int {
 	rows := this.GetRows()
 	if len(rows) == 0 {
@@ -113,7 +94,7 @@ func (this *Sheet) Clone() *Sheet {
 }
 func (this *Sheet) SearchByTag(i int) *Field {
 	for _, f := range this.Fields {
-		if f.tag == i {
+		if f.kvRow == i {
 			return f
 		}
 	}
@@ -136,7 +117,7 @@ func (this *Sheet) AddEnum(k string, v [4]int) error {
 	if this.sheetAttach == nil {
 		this.sheetAttach = map[string]*SheetAttach{}
 	}
-	k = TrimProtoName(k)
+	_, k = TrimProtoName(k)
 	if _, ok := this.sheetAttach[k]; ok {
 		return fmt.Errorf("attach已经存在,sheet:%v,k:%v", this.ProtoName, k)
 	}
@@ -145,17 +126,6 @@ func (this *Sheet) AddEnum(k string, v [4]int) error {
 	return nil
 }
 
-// AddIndex 创建索引 [2]int{"索引字段","索引值"}    map[i][]int32{id,id,id}
-//func (this *Sheet) AddIndex(k string, v [2]int) error {
-//	if _, ok := this.sheetAttach[k]; ok {
-//		return fmt.Errorf("attach已经存在,sheet:%v,k:%v", this.ProtoName, k)
-//	}
-//	av := [4]int{v[0], v[1], -1, -1}
-//	this.sheetAttach[k] = &SheetAttach{t: SheetTypeArray, k: k, v: av}
-//	return nil
-//}
-
-// 重新解析obj的字段
 func (this *Sheet) reParseEnum(attach *SheetAttach) *Sheet {
 	rows := this.GetRows()
 	if rows == nil {
@@ -164,10 +134,6 @@ func (this *Sheet) reParseEnum(attach *SheetAttach) *Sheet {
 	maxRow := this.MaxRow() - 1
 	var index int
 	var fields []*Field
-	//indexes := this.SheetIndex
-	//if p, ok := this.Parser.(ParserStructType); ok {
-	//	indexes = p.StructType(this.ProtoName)
-	//}
 	attach.k = Convert(attach.k)
 	newSheet := this.Clone()
 	newSheet.ProtoName = attach.k
@@ -176,13 +142,11 @@ func (this *Sheet) reParseEnum(attach *SheetAttach) *Sheet {
 	newSheet.sheetIndexes = attach.v
 	indexes := attach.v
 
-	var ok bool
-	if newSheet.ProtoName, ok = VerifyName(newSheet.ProtoName); !ok {
+	newSheet.side, newSheet.ProtoName = TrimProtoName(newSheet.ProtoName)
+	newSheet.SheetName = newSheet.ProtoName
+	if !VerifyTag(newSheet.side) {
 		return nil
 	}
-	newSheet.ProtoName = TrimProtoName(newSheet.ProtoName)
-	//newSheet.ProtoName = Config.ProtoNameFilter(newSheet, newSheet.ProtoName)
-
 	for i := this.Skip; i <= maxRow; i++ {
 		row := this.GetRow(i)
 		if row == nil {
@@ -197,15 +161,10 @@ func (this *Sheet) reParseEnum(attach *SheetAttach) *Sheet {
 		}
 
 		index++
-		field := &Field{}
-		field.tag = i
-		field.Name = key
+		field := NewField(key, "")
+		field.kvRow = i
 		field.Index = []int{indexes[1]}
-		//field.ProtoName = key
-		//
-		//
 		field.ProtoIndex = index
-		//field.ProtoRequire = FieldTypeNone
 		if indexes[2] >= 0 && indexes[2] < len(row) {
 			if v := strings.TrimSpace(row[indexes[2]]); v != "" {
 				field.ProtoType = ProtoBuffTypeFormat(v)
@@ -247,19 +206,13 @@ func (this *Sheet) Values() (any, []error) {
 func (this *Sheet) kv() (any, []error) {
 	r := map[string]any{}
 	var errs []error
-	//var emptyCell []int
 	rows := this.GetRows()
 	if rows == nil {
 		return r, errs
 	}
 	maxRow := this.MaxRow() - 1
-	//indexes := this.sheetIndexes
-	//if p, ok := this.Parser.(ParserStructType); ok {
-	//	indexes = p.StructType(this.ProtoName)
-	//}
 	for i := this.Skip; i <= maxRow; i++ {
 		row := this.GetRow(i)
-		//row := rows[i]
 		if len(row) == 0 {
 			continue
 		}
@@ -273,9 +226,6 @@ func (this *Sheet) kv() (any, []error) {
 			}
 		}
 	}
-	//if len(emptyCell) > 10 {
-	//	logger.Trace("%v共%v行ID为空已经忽略", this.ProtoName, len(emptyCell))
-	//}
 	return r, errs
 }
 
@@ -311,7 +261,7 @@ func (this *Sheet) hash() (any, []error) {
 	}
 
 	if len(emptyCell) > 10 {
-		//logger.Trace("%v共%v行ID为空已经忽略:%v", this.ProtoName, len(emptyCell), emptyCell)
+		logger.Trace("%v共%v行ID为空已经忽略", this.ProtoName, len(emptyCell))
 	}
 	return r, errs
 }
@@ -388,14 +338,3 @@ func (this *Sheet) GlobalObjectsProtoName() {
 	}
 }
 
-// GlobalObjectsAutoName 自动命名
-//func (this *Sheet) GlobalObjectsAutoName() {
-//	for _, field := range this.Fields {
-//		if len(field.Dummy) > 0 {
-//			dummy := field.Dummy[0]
-//			if _, ok := globalObjects.Search(dummy); !ok {
-//				globalObjects[dummy.Label] = dummy
-//			}
-//		}
-//	}
-//}

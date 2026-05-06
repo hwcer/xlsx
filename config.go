@@ -15,19 +15,13 @@ const (
 	VersionTagChar = "#"
 )
 
-//type ProtoRequireHandle interface {
-//	Value(*Field, *xlsx.Row) (any, error)
-//	Require(*Field) string
-//}
-
 type Parser interface {
 	Verify() (skip int, name string, ok bool) //验证表格是否有效
 	Fields() []*Field                         //表格字段
 }
 
 type enum struct {
-	Src string `json:"src"`
-	//Name  string `json:"name"`
+	Src   string `json:"src"`
 	Index [4]int `json:"index"`
 }
 
@@ -56,9 +50,7 @@ var Config = &config{
 	enums: map[string]*enum{},
 	Types: map[string]SheetType{},
 	Proto: "configs.proto",
-	Empty: func(s string) bool { return s == "" },
-	//Package:              "protoc",
-	//Summary:              "summary",
+	Empty:    func(s string) bool { return s == "" },
 	Language:              []string{"text", "lang", "language"},
 	LanguageNewSheetName:  "多语言文本",
 	EnableGlobalDummyName: true,
@@ -99,7 +91,9 @@ func (this *config) SetEnum(name, src string, index [4]int) {
 	if this.enums == nil {
 		this.enums = map[string]*enum{}
 	}
-	this.enums[TrimProtoName(name)] = &enum{Src: TrimProtoName(src), Index: index}
+	_, pk := TrimProtoName(name)
+	_, sk := TrimProtoName(src)
+	this.enums[pk] = &enum{Src: sk, Index: index}
 }
 
 func (this *config) SetJsonNameFilter(f func(*Sheet) string) {
@@ -110,7 +104,6 @@ func (this *config) SetProtoNameFilter(f func(*Sheet) string) {
 }
 func init() {
 	Config.SetType(SheetTypeHash, "map", "hash")
-	//Config.SetType(SheetTypeArray, "arr", "array", "slice")
 	Config.SetType(SheetTypeEnum, "kv", "kvs", "obj", "object", "struct")
 }
 

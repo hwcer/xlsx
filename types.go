@@ -69,7 +69,6 @@ func ProtoBuffTypeFormat(t string) ProtoBuffType {
 	case "str", "string", "text", "lang", "language":
 		return "string"
 	}
-	//判断语言文件中有没有
 	for _, k := range Config.Language {
 		if k == t {
 			return "string"

@@ -70,8 +70,8 @@ func (this *Module) Start() error {
 		return err
 	}
 	for k, v := range enums {
-		pk := TrimProtoName(k)
-		v.Src = TrimProtoName(v.Src)
+		_, pk := TrimProtoName(k)
+		_, v.Src = TrimProtoName(v.Src)
 		Config.enums[pk] = v
 	}
 

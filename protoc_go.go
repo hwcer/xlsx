@@ -27,8 +27,6 @@ func ProtoGo() {
 		plugin = fmt.Sprintf("--plugin=protoc-gen-go=%v", joinPath("protoc-gen-go.exe"))
 	}
 
-	//protoc --go_out=. --plugin=protoc-gen-go=path/to/protoc-gen-go your_proto_file.proto
-
 	cmd := exec.Command(proto, out, plugin, path, file)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

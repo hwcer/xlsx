@@ -195,13 +195,3 @@ func (this *Parser) NewStruct() (r map[string][4]int) {
 	return
 }
 
-// StructType Struct表(kv模式)下解析方式
-// key index
-// val index
-// type index type默认为int32
-//func (this *Parser) StructType(protoName string) [4]int {
-//	if name := strings.ToUpper(protoName); name == "EVENTS" {
-//		return [4]int{1, 0, 2, 7}
-//	}
-//	return [4]int{0, 1, 2, 3} //默认值,仅仅演示
-//}

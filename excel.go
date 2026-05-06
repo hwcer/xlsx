@@ -41,7 +41,6 @@ func LoadExcel(dir string) {
 			return
 		}
 
-		//wb, err := xlsx.OpenFile(file)
 		logger.Trace("解析文件:%v", file)
 
 		fileName := strings.TrimPrefix(file, dir)
@@ -51,14 +50,12 @@ func LoadExcel(dir string) {
 			}
 
 			for k, v := range parseSheet(wb, fileName, sheetName) {
-				//lowerName := strings.ToLower(v.ProtoName)
 				if i, ok := filter[k]; ok {
 					logger.Alert("表格名字[%v]重复自动跳过", v.ProtoName)
 					logger.Alert("----sheet:%v,file:%v", v.Name, v.FileName)
 					logger.Alert("----sheet:%v,file:%v", i.Name, i.FileName)
 				} else {
 					protoIndex += 1
-					//v.FileName = file
 					v.ProtoIndex = protoIndex
 					filter[k] = v
 					sheets = append(sheets, v)
@@ -69,7 +66,6 @@ func LoadExcel(dir string) {
 	}
 
 	if cosgo.Config.GetString(FlagsNameOut) != "" {
-		//writeExcelIndex(sheets)
 		writeProtoMessage(sheets)
 	}
 	if cosgo.Config.GetString(FlagsNameJson) != "" {
@@ -91,7 +87,6 @@ func parseSheet(wb *excelize.File, fileName string, sheetName string) (sheets ma
 	sheets = map[string]*Sheet{}
 	logger.Trace("----开始读取表格[%v]", sheetName)
 	sheet := &Sheet{excel: wb, SheetType: SheetTypeHash}
-	sheet.Name = Convert(sheet.Name)
 	sheet.FileName = fileName
 	sheet.SheetName = sheetName
 	sheet.Parser = Config.Parser(sheet)
@@ -99,11 +94,11 @@ func parseSheet(wb *excelize.File, fileName string, sheetName string) (sheets ma
 	if sheet.Skip, sheet.SheetName, ok = sheet.Parser.Verify(); !ok {
 		return nil
 	}
-	if sheet.SheetName, ok = VerifyName(sheet.SheetName); !ok {
+	sheet.side, sheet.SheetName = TrimProtoName(sheet.SheetName)
+	if !VerifyTag(sheet.side) {
 		return nil
 	}
-
-	sheet.ProtoName = TrimProtoName(sheet.SheetName)
+	sheet.ProtoName = sheet.SheetName
 	if sheet.ProtoName == "" {
 		return nil
 	}
@@ -128,7 +123,7 @@ func parseSheet(wb *excelize.File, fileName string, sheetName string) (sheets ma
 			logger.Alert("****************未知的数据类型,Sheet:%v ,Type:%v", sheet.Name, field.ProtoType)
 			continue
 		}
-		if field.Name, ok = VerifyName(field.Name); !ok {
+		if !VerifyTag(field.Side()) {
 			continue
 		}
 		if i := strings.Index(field.Name, VersionTagChar); i > 0 {
@@ -136,9 +131,8 @@ func parseSheet(wb *excelize.File, fileName string, sheetName string) (sheets ma
 			field.Name = field.Name[:i]
 			fm := fieldsMap[field.Name]
 			if fm == nil {
-				fm = &Field{}
+				fm = NewField(field.Name, field.Side())
 				index++
-				fm.Name = field.Name
 				fm.FieldType = field.FieldType
 				fm.ProtoType = field.ProtoType
 				fm.ProtoIndex = index

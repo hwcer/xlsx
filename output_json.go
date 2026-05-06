@@ -14,9 +14,6 @@ func writeValueJson(sheets []*Sheet) {
 		if v, e := sheet.Values(); len(e) == 0 {
 			name := JsonNameFilterDefault(sheet)
 			data[name] = v
-			//if e2 := WriteFile(sheet.ProtoName, v); e2 != nil {
-			//	errs = append(errs, e2)
-			//}
 		} else {
 			errs = append(errs, e...)
 		}
@@ -26,7 +23,6 @@ func writeValueJson(sheets []*Sheet) {
 		for _, err := range errs {
 			logger.Trace(err)
 		}
-		//os.Exit(0)
 	}
 	path := cosgo.Config.GetString(FlagsNameJson)
 	if filepath.Ext(path) == ".json" {

@@ -76,15 +76,7 @@ func (this *Field) compile() bool {
 }
 
 // ending 处理字段结束符号，解析嵌套结构的结束标记
-// 参数：
-//
-//	value: 单元格值
-//	index: 单元格索引
-//	suffix: 后缀字符串（包含结束符号）
-//	protoType: 字段类型
-//
-// 返回：是否解析结束
-func (this *Field) ending(value string, index int, suffix string, protoType cosxls.ProtoBuffType) bool {
+func (this *Field) ending(index int, suffix string, protoType cosxls.ProtoBuffType) bool {
 	if suffix == "" {
 		return this.isEnd()
 	}
@@ -141,43 +133,36 @@ func (this *Field) ending(value string, index int, suffix string, protoType cosx
 //   - [{...}]: 数组对象类型
 //   - [...]: 数组类型（根据基础类型确定具体数组类型）
 //   - {...}: 对象类型
-//   - <name>: 字段名声明格式
 //   - field.dummy[{...}] / field.dummy{...}: 显式指定字段名与子结构体名,子结构体名将按PROTO命名规范格式化
+//   - <dummy>field[{...}] / <dummy>field{...}: 等价于 field.dummy[{...}] / field.dummy{...}
 func (this *Field) parse(fieldType cosxls.ProtoBuffType, value string, index int) (end bool) {
 	if fieldType == "" {
 		return false
 	}
 	var protoType cosxls.ProtoBuffType
-	//this.begin += 1
 	this.Index = append(this.Index, index)
 	if value == "" {
 		return len(this.flags) == 0 //TODO 只有ARRAY允许为空
 	}
-	//var protoName string
 	var dummyName string
+	// <DummyName>field[{...}] 等价于 field.DummyName[{...}]
 	if i, j := strings.Index(value, "<"), strings.Index(value, ">"); i >= 0 && j > i {
-		this.Name = cosxls.TrimProtoName(value[i+1 : j])
 		dummyName = value[i+1 : j]
-		value = value[j+1:]
-
+		value = value[:i] + value[j+1:]
 	}
-	//begin := false //不能在同一个单元格内同时开始和结束
 	name, suffix := "", ""
 	if i := strings.Index(value, "[{"); i >= 0 {
-		//begin = true
 		name = value[0:i]
 		suffix = value[i+2:]
 		this.flags = append(this.flags, "]", "}")
 		if d := strings.Index(name, "."); d >= 0 {
-			dummyName = cosxls.TrimProtoName(name[d+1:])
+			_, dummyName = cosxls.TrimProtoName(name[d+1:])
 			name = name[:d]
 		}
 		this.Dummy = append(this.Dummy, cosxls.NewDummy(dummyName))
 		protoType = FieldTypeArrayObject
 	} else if i = strings.Index(value, "["); i >= 0 {
-		//begin = true
 		name = value[0:i]
-		//suffix = value[i:]
 		this.flags = append(this.flags, "]")
 		switch fieldType {
 		case cosxls.ProtoBuffTypeString:
@@ -195,12 +180,11 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, value string, index int
 		}
 
 	} else if i = strings.Index(value, "{"); i >= 0 {
-		//begin = true
 		name = value[0:i]
 		suffix = value[i+1:]
 		this.flags = append(this.flags, "}")
 		if d := strings.Index(name, "."); d >= 0 {
-			dummyName = cosxls.TrimProtoName(name[d+1:])
+			_, dummyName = cosxls.TrimProtoName(name[d+1:])
 			name = name[:d]
 		}
 		this.Dummy = append(this.Dummy, cosxls.NewDummy(dummyName))
@@ -211,18 +195,16 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, value string, index int
 		protoType = fieldType
 	}
 
-	//第一个名字和类型为准
 	if len(this.Index) == 1 {
-		this.Name = cosxls.TrimProtoName(name)
+		side, trimmed := cosxls.TrimProtoName(name)
+		idx, dummy := this.Index, this.Dummy
+		this.Field = *cosxls.NewField(trimmed, side)
+		this.Index = idx
+		this.Dummy = dummy
 		this.ProtoType = protoType
 	}
 	if !IsMultipleType(this.ProtoType) {
 		return true
 	}
-	return this.ending(value, index, suffix, fieldType)
-	//if !begin {
-	//	return this.ending(cell)
-	//}
-	//fmt.Printf("发现ID:%v", suffix)
-	//return false
+	return this.ending(index, suffix, fieldType)
 }

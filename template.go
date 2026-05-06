@@ -54,10 +54,6 @@ func init() {
 	tpl.Delims("<%", "%>")
 }
 
-//func TemplateIsArray(t SheetType) bool {
-//	return t == SheetTypeArray
-//}
-
 func TemplateProtoRequire(field *Field) string {
 	handle := Require(field.ProtoType)
 	if handle == nil {
@@ -83,19 +79,13 @@ func TemplateDummyRequire(field *DummyField) string {
 
 func TemplateSummaryType(sheet *Sheet) (r string) {
 	primary := sheet.Fields[0]
-	//var t string
 	t := ProtoNameFilterDefault(sheet)
 	switch sheet.SheetType {
 	case SheetTypeEnum:
 		return fmt.Sprintf("%v %v", t, sheet.ProtoName)
-	//case SheetTypeArray:
-	//	return fmt.Sprintf("map<int32,%v> %v", sheet.ProtoName, sheet.ProtoName)
-	//return fmt.Sprintf("repeated %v", sheet.DummyName)
 	default:
-		//t = fmt.Sprintf("%v%v", sheet.ProtoName, Config.Suffix)
 		return fmt.Sprintf("map<%v,%v> %v", primary.ProtoType, t, sheet.ProtoName)
 	}
-	//return fmt.Sprintf("map<%v,%v>", primary.ProtoType, sheet.ProtoName)
 }
 
 func ProtoTitle(builder *strings.Builder) {
@@ -128,8 +118,6 @@ func ProtoTitle(builder *strings.Builder) {
 		GOPackage: goPackage,
 		CSPackage: csPackage,
 	}
-	//fmt.Printf("go_package: %v\n", goPackage)
-	//fmt.Printf("csharp_namespace: %v\n", csPackage)
 	err = t.Execute(builder, data)
 	if err != nil {
 		logger.Fatal(err)
@@ -155,10 +143,8 @@ func ProtoMessage(sheets []*Sheet, builder *strings.Builder) {
 	}
 
 	data := &struct {
-		//Suffix string
 		Sheets []*Sheet
 	}{
-		//Suffix: Config.Suffix,
 		Sheets: sheets,
 	}
 
@@ -171,7 +157,6 @@ func ProtoMessage(sheets []*Sheet, builder *strings.Builder) {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	//输出总表
 	if Config.Summary != "" {
 		data2 := &struct {
 			Name   string

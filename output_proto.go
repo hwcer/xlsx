@@ -34,7 +34,6 @@ func writeExcelIndex(sheets []*Sheet) {
 	logger.Trace("======================开始生成配置索引======================")
 	//输出所有标签
 	b := &strings.Builder{}
-	//t.WriteString("\n//配置索引......\n")
 	in := cosgo.Config.GetString(FlagsNameIn) + "/"
 	for _, s := range sheets {
 		b.WriteString(repeat(s.ProtoName, 30))
@@ -73,13 +72,7 @@ func buildGlobalObjects(b *strings.Builder, sheets []*Sheet) {
 	for _, s := range sheets {
 		s.GlobalObjectsProtoName()
 	}
-	//for _, s := range sheets {
-	//	s.GlobalObjectsAutoName()
-	//}
 	for _, dummy := range globalObjects {
-		//if dummy.Name == "" {
-		//	dummy.Name = globalObjects.Name(dummy)
-		//}
 		if Config.NamedDummyInHeader && dummy.Name != dummy.Label {
 			continue
 		}

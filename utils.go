@@ -11,17 +11,6 @@ import (
 	"github.com/hwcer/logger"
 )
 
-func VerifyName(s string) (k string, ok bool) {
-	i := strings.Index(s, ":")
-	if i == -1 {
-		return s, true
-	}
-	k = s[i+1:]
-	tag := strings.ToUpper(cosgo.Config.GetString(FlagsNameTag))
-	ok = tag == "" || tag == strings.ToUpper(s[0:i])
-	return
-}
-
 // Convert 全角转半角
 func Convert(s string) string {
 	str := []rune(s)
@@ -37,9 +26,14 @@ func Convert(s string) string {
 	return string(str)
 }
 
-func TrimProtoName(s string) string {
+func TrimProtoName(s string) (tag string, name string) {
 	s = Convert(s)
+	if i := strings.Index(s, ":"); i >= 0 {
+		tag = s[:i]
+		s = s[i+1:]
+	}
 	var b strings.Builder
+	b.Grow(len(s))
 	for _, r := range s {
 		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_' {
 			b.WriteRune(r)
@@ -53,7 +47,16 @@ func TrimProtoName(s string) string {
 		s = s[0:i] + FirstUpper(s[i+1:])
 		i = strings.Index(s, "_")
 	}
-	return s
+	name = s
+	return
+}
+
+func VerifyTag(tag string) bool {
+	if tag == "" {
+		return true
+	}
+	t := strings.ToUpper(cosgo.Config.GetString(FlagsNameTag))
+	return t == "" || t == strings.ToUpper(tag)
 }
 
 func Ignore(f string) bool {
@@ -250,7 +253,6 @@ func WriteFile(file string, data any) {
 		return
 	}
 
-	//file := filepath.Join(cosgo.Config.GetString(FlagsNameJson), name+".json")
 	if err = os.WriteFile(file, b, os.ModePerm); err != nil {
 		logger.Error("WriteFile:%v", err)
 	}

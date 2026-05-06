@@ -16,14 +16,13 @@ type DummyField struct {
 
 func NewDummy(name string) *Dummy {
 	d := new(Dummy)
-	d.Name = TrimProtoName(name)
+	_, d.Name = TrimProtoName(name)
 	return d
 }
 
 type Dummy struct {
-	Name  string
-	Label string
-	//Sheets []int
+	Name   string
+	Label  string
 	Fields []*DummyField
 }
 
@@ -48,7 +47,6 @@ func (this *Dummy) Add(name string, protoType ProtoBuffType, sheetIndex int) err
 	}
 	field.label = fmt.Sprintf("%v%v", FirstUpper(field.Name), FirstUpper(string(protoType)))
 	this.Fields = append(this.Fields, field)
-	//this.Sheets = append(this.Sheets, SheetIndex)
 	return nil
 }
 
@@ -64,7 +62,6 @@ func (this *Dummy) Compile() string {
 		arr = append(arr, v.label)
 	}
 	this.Label = strings.Join(arr, "")
-	//this.Name = this.Label
 	return this.Label
 }
 
