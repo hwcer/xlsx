@@ -156,7 +156,7 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, value string, index int
 	//var protoName string
 	var dummyName string
 	if i, j := strings.Index(value, "<"), strings.Index(value, ">"); i >= 0 && j > i {
-		this.Name = cosxls.FirstUpper(value[i+1 : j])
+		this.Name = cosxls.TrimProtoName(value[i+1 : j])
 		dummyName = value[i+1 : j]
 		value = value[j+1:]
 
@@ -213,7 +213,7 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, value string, index int
 
 	//第一个名字和类型为准
 	if len(this.Index) == 1 {
-		this.Name = name
+		this.Name = cosxls.TrimProtoName(name)
 		this.ProtoType = protoType
 	}
 	if !IsMultipleType(this.ProtoType) {

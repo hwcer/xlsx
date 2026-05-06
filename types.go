@@ -102,6 +102,12 @@ func (this *ProtoBuffParseDefault) Value(vs ...string) (r any, err error) {
 		} else {
 			v = this.trimInt(v)
 			r, err = strconv.Atoi(v)
+			if err != nil {
+				var f float64
+				if f, err = strconv.ParseFloat(v, 64); err == nil {
+					r = int(f)
+				}
+			}
 		}
 	case ProtoBuffTypeUint32, ProtoBuffTypeUint64:
 		if v == "" {
@@ -109,6 +115,12 @@ func (this *ProtoBuffParseDefault) Value(vs ...string) (r any, err error) {
 		} else {
 			v = this.trimInt(v)
 			r, err = strconv.ParseUint(v, 10, 64)
+			if err != nil {
+				var f float64
+				if f, err = strconv.ParseFloat(v, 64); err == nil {
+					r = uint64(f)
+				}
+			}
 		}
 	case ProtoBuffTypeFloat, ProtoBuffTypeDouble:
 		if v == "" {
@@ -140,7 +152,7 @@ func (*ProtoBuffParseDefault) trimInt(s string) string {
 	result := strings.Builder{}
 	hasDigit := false
 	for _, ch := range s {
-		if unicode.IsDigit(ch) || (ch == '-' && !hasDigit) || ch == '.' {
+		if unicode.IsDigit(ch) || (ch == '-' && !hasDigit) || ch == '.' || ch == 'e' || ch == 'E' || ch == '+' {
 			result.WriteRune(ch)
 			if unicode.IsDigit(ch) {
 				hasDigit = true
