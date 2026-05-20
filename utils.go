@@ -247,7 +247,13 @@ func CheckFileAndRemove(path string) error {
 }
 
 func WriteFile(file string, data any) {
-	b, err := json.Marshal(data)
+	var b []byte
+	var err error
+	if Config.JsonCompact {
+		b, err = json.Marshal(data)
+	} else {
+		b, err = json.MarshalIndent(data, "", "  ")
+	}
 	if err != nil {
 		logger.Error("WriteFile:%v", err)
 		return
