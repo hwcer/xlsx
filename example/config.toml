@@ -8,7 +8,7 @@ branch=""
 
 GOPackage="configs"
 CSPackage="Cosnet.configs"
-
+JsonCompact=false
 
 ProtoHeader="./base.proto"
 EnableGlobalDummyName=false

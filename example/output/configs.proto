@@ -14,33 +14,38 @@ message Reward{
 
 // Sheet:
 // File:\全局事件.xlsx
-message Emitter{
-	int32 id = 1; //事件ID
-	string name = 2; //事件名称
-	string type = 3; //类型
-	int32 Daily = 4; //日常
-	int32 Record = 5; //成就
-	int32 Events = 6; //是否触发事件
-	int32 update = 7; //允许客户端更新数据
-	int32 replace = 8; //数据更新模式
-}
-// Sheet:
-// File:\全局事件.xlsx
 message Events{
 	int32 login = 1; //1
 	int32 score = 2; //2
 	int32 order = 3; //3
 }
 // Sheet:
+// File:\全局事件.xlsx
+message Emitter{
+	int32 Id = 1; //
+	string Name = 2; //
+	string Type = 3; //
+	int32 Daily = 4; //
+	int32 Record = 5; //
+	int32 Events = 6; //
+	int32 Update = 7; //
+	int32 Replace = 8; //
+}
+// Sheet:
 // File:\测试表.xlsx
 message Activity{
-	int32 id = 1; //活动
-	string TType = 2; //时间格式
+	int32 Id = 1; //
+	string TType = 2; //
 	repeated int32 Arr = 3; //
 	Drop Obj = 4; //
 	repeated Item ArrObj = 5; //id
-	repeated float ArrFloat = 6; //1.1
-	Reward items = 7; //使用内置子对象
+	repeated float ArrFloat = 6; //
+	Reward Items = 7; //
+}
+// Sheet:
+// File:\测试表.xlsx
+message Base{
+	string Id = 1; //
 }
 // Sheet:
 // File:\测试表.xlsx
@@ -55,9 +60,4 @@ message BaseObj{
 	int32 lv = 1; //等级
 	int64 exp = 2; //经验
 	string name = 3; //名称
-}
-// Sheet:
-// File:\测试表.xlsx
-message Base{
-	string id = 1; //活动
 }
