@@ -1,0 +1,10 @@
+﻿Career,,
+int,string,
+id,name,
+职业ID,名称,英文
+0,通用,不限职业
+1,野蛮人,Barbarian
+2,武僧,Monk
+3,巫医,Witch Doctor
+4,猎魔人,Demon Hunter
+5,法师,Wizard

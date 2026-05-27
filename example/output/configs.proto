@@ -1,24 +1,28 @@
 syntax = "proto3";
-
-// 打表全局对象
-// 普通掉落对象
-message Reward{ 
-    int32 id = 1; 
-    int32 num = 2; 
-}
-
+option go_package = "./;configs";
+option csharp_namespace = "Cosnet.configs";
+package protoc;
 
 //全局对象......
+//sign:IdInt32NumInt32PerInt32
+message Drop{ 
+	int32 id = 1; 
+	int32 num = 2; 
+	int32 per = 3; 
+}
+//sign:IdInt32NumInt32
+message Item{ 
+	int32 id = 1; 
+	int32 num = 2; 
+}
+//sign:IdInt32ValInt32
+message Reward{ 
+	int32 id = 1; 
+	int32 val = 2; 
+}
 
 //数据对象......
 
-// Sheet:
-// File:\全局事件.xlsx
-message Events{
-	int32 login = 1; //1
-	int32 score = 2; //2
-	int32 order = 3; //3
-}
 // Sheet:
 // File:\全局事件.xlsx
 message Emitter{
@@ -30,6 +34,13 @@ message Emitter{
 	int32 Events = 6; //
 	int32 Update = 7; //
 	int32 Replace = 8; //
+}
+// Sheet:
+// File:\全局事件.xlsx
+message Events{
+	int32 login = 1; //1
+	int32 score = 2; //2
+	int32 order = 3; //3
 }
 // Sheet:
 // File:\测试表.xlsx
@@ -49,15 +60,21 @@ message Base{
 }
 // Sheet:
 // File:\测试表.xlsx
-message Baseenum{
+message BaseObj{
 	int32 lv = 1; //等级
 	int64 exp = 2; //经验
 	string name = 3; //名称
 }
 // Sheet:
 // File:\测试表.xlsx
-message BaseObj{
+message Baseenum{
 	int32 lv = 1; //等级
 	int64 exp = 2; //经验
 	string name = 3; //名称
+}
+// Sheet:
+// File:\职业表.csv
+message Career{
+	int32 Id = 1; //
+	string Name = 2; //
 }

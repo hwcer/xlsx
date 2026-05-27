@@ -64,7 +64,15 @@ func Ignore(f string) bool {
 	if strings.HasPrefix(Convert(name), "~") {
 		return false
 	}
-	if !strings.HasSuffix(f, ".xlsx") {
+	ext := strings.ToLower(filepath.Ext(f))
+	matched := false
+	for _, e := range Config.Extensions {
+		if ext == strings.ToLower(e) {
+			matched = true
+			break
+		}
+	}
+	if !matched {
 		return false
 	}
 	for _, v := range ignoreFiles {

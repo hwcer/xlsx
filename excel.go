@@ -35,9 +35,9 @@ func LoadExcel(dir string) {
 		if strings.HasPrefix(filepath.Base(file), "~") {
 			continue
 		}
-		wb, err = excelize.OpenFile(file)
+		wb, err = OpenFile(file)
 		if err != nil {
-			logger.Fatal("excel文件格式错误:%v\n%v", file, err)
+			logger.Fatal("文件格式错误:%v\n%v", file, err)
 			return
 		}
 

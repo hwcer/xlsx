@@ -10,9 +10,9 @@ GOPackage="configs"
 CSPackage="Cosnet.configs"
 JsonCompact=false
 
-ProtoHeader="./base.proto"
-EnableGlobalDummyName=false
-NamedDummyInHeader=true
+#ProtoHeader="./base.proto"
+EnableGlobalDummyName=true
+NamedDummyInHeader=false
 
 [enum.BaseEnum]
 src="base"

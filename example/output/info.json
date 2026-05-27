@@ -24,6 +24,12 @@
       "tableClass": "BaseenumTable",
       "keyType": "string"
     },
+    "Career": {
+      "file": "\\职业表.csv",
+      "rowClass": "CareerRow",
+      "type": "normal",
+      "keyType": "int"
+    },
     "Emitter": {
       "file": "\\全局事件.xlsx",
       "rowClass": "EmitterRow",
@@ -38,11 +44,12 @@
     }
   },
   "tableList": [
-    "Events",
     "Emitter",
+    "Events",
     "Activity",
     "Base",
+    "BaseObj",
     "Baseenum",
-    "BaseObj"
+    "Career"
   ]
 }

@@ -125,7 +125,14 @@ func (this *ArrayFromSplit) Value(vs ...string) (any, error) {
 	if len(vs) == 0 || vs[0] == "" {
 		return []any{}, nil
 	}
-	for _, v := range strings.Split(vs[0], ",") {
+	sep := ","
+	for _, s := range cosxls.Config.ArraySplitString {
+		if strings.Contains(vs[0], s) {
+			sep = s
+			break
+		}
+	}
+	for _, v := range strings.Split(vs[0], sep) {
 		if i, e := this.parse(v); e != nil {
 			return nil, e
 		} else {

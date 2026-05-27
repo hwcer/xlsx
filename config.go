@@ -45,6 +45,8 @@ type config struct {
 	EnableGlobalDummyName bool                 //允许未显式命名的子对象按签名自动生成名称,为false时必须通过.Name{}/<Name>显式命名
 	NamedDummyInHeader    bool                 //显式命名的子对象假定已在ProtoHeader中声明,不注册到全局对象也不生成message定义
 	JsonCompact           bool                 //JSON紧凑模式,为true时生成紧凑JSON,为false时生成格式化JSON
+	ArraySplitString      []string             //数组类型值分割字符串
+	Extensions            []string             //有效的Excel文件扩展名
 }
 
 var Config = &config{
@@ -56,6 +58,8 @@ var Config = &config{
 	LanguageNewSheetName:  "多语言文本",
 	EnableGlobalDummyName: true,
 	JsonCompact:           false,
+	ArraySplitString:      []string{",", "-", "_", "|", ";", ":"},
+	Extensions:            []string{".xlsx", ".csv"},
 }
 
 func JsonNameFilterDefault(s *Sheet) string {
