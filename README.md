@@ -7,7 +7,8 @@ Excel 打表工具:将 Excel 配置表批量转换为 `.proto` 定义、JSON 数
 
 ## 特性
 
-- 读取目录下所有 `.xlsx` 配置表,统一生成一份 `.proto` 文件
+- 读取目录下所有 `.xlsx` / `.csv` 配置表,统一生成一份 `.proto` 文件
+- 支持通过 `Extensions` 配置有效文件扩展名
 - 支持 `map` / `struct(kv)` 两种 Sheet 类型
 - 支持嵌套对象 (`Dummy`) 与自动去重的全局对象声明
 - 支持总表 (Summary) 生成
@@ -88,6 +89,8 @@ CSPackage   = "Cosnet.configs"
 Proto       = "configs.proto"   # 输出 proto 文件名
 Summary     = ""                # 总表名,留空不生成
 ProtoHeader = ""                # 可选,指向现有 proto 文件,用其内容替代内置文件头部模板 (设置后 Package/GOPackage/CSPackage 失效)
+Extensions  = [".xlsx", ".csv"] # 有效的输入文件扩展名
+ArraySplitString = [",", "-", "_", "|", ";", ":"] # 数组分隔符优先级
 ```
 
 ### 自定义 proto 文件头部 `ProtoHeader`
@@ -121,6 +124,32 @@ NamedDummyInHeader    = true        # 命名子对象假定已在 base.proto 中
 
 - 显式命名的子对象(通过 `<>` 或 `.Name` 指定)不会注册到全局对象,视为已在 `ProtoHeader` 中定义
 - 匿名子对象(未指定名字的嵌套对象)仍会按签名自动命名并写入输出 proto(`EnableGlobalDummyName` 须为 `true`)
+
+### CSV 支持
+
+工具原生支持 `.csv` 文件,与 `.xlsx` 使用完全相同的解析流程。CSV 文件在读取后会自动转换为 `excelize.File`,Sheet 名取自文件名(去掉扩展名)。
+
+CSV 文件的行列格式与 Excel 完全一致,遵循相同的 4 行头部约定(表名、类型、字段名、描述)。
+
+### 文件扩展名 `Extensions`
+
+通过 `Extensions` 配置有效的输入文件扩展名,不在列表中的文件会被跳过:
+
+```toml
+Extensions = [".xlsx", ".csv"]
+```
+
+默认值:`[".xlsx", ".csv"]`
+
+### 数组分隔符 `ArraySplitString`
+
+单元格切割数组类型(`[]int`、`[]string` 等)使用的分隔符列表,按优先级顺序匹配第一个出现在单元格内容中的分隔符:
+
+```toml
+ArraySplitString = [",", "-", "_", "|", ";", ":"]
+```
+
+默认值:`[",", "-", "_", "|", ";", ":"]`
 
 ### 枚举配置 `[enum]`
 
