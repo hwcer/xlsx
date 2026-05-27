@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Excel-to-Protocol Buffer code generation tool (`github.com/hwcer/xlsx`). Reads `.xlsx` configuration tables and generates `.proto` definitions, JSON data files, and optionally Go code via `protoc`. Written in Go 1.25, uses the `cosgo` framework for CLI/config lifecycle.
+Excel-to-Protocol Buffer code generation tool (`github.com/hwcer/xlsx`). Reads `.xlsx` / `.csv` configuration tables and generates `.proto` definitions, JSON data files, and optionally Go code via `protoc`. Written in Go 1.25, uses the `cosgo` framework for CLI/config lifecycle.
 
 ## Build & Run
 
@@ -36,8 +36,8 @@ There are no tests in this project. Use `go vet ./...` for static checks.
 
 ```
 LoadExcel(dir)
-  → GetFiles() filters .xlsx files
-  → excelize.OpenFile() per workbook
+  → GetFiles() filters by Config.Extensions (.xlsx, .csv)
+  → OpenFile() per file (csv.go: CSV → excelize.File, otherwise excelize.OpenFile)
   → parseSheet() per sheet:
       Sheet created → Config.Parser(sheet) → Parser.Verify() + Parser.Fields()
       → builds Field list, resolves Dummy (nested objects), attaches enums
@@ -69,6 +69,15 @@ The reference parser in `sample/` expects a 4-row header format:
 - Row 4: Field descriptions
 
 Fields and table names support `S:`/`C:` prefixes for server/client tagging, filtered by `--tag`.
+
+### CSV 支持 (`csv.go`)
+
+`OpenFile(file)` 是统一的文件打开入口，根据扩展名分发：`.csv` 通过 `openCSV` 读取后写入 `excelize.File`（sheet 名取自文件名），其余走 `excelize.OpenFile`。业务层无需感知格式差异，CSV 文件遵循与 Excel 相同的 4 行头部约定。
+
+### 关键配置项
+
+- **`Extensions`**: 有效输入文件扩展名，默认 `[".xlsx", ".csv"]`，`Ignore()` 过滤时使用
+- **`ArraySplitString`**: 单元格切割数组（`[]int` 等）的分隔符优先级列表，默认 `[",", "-", "_", "|", ";", ":"]`，匹配第一个出现在单元格内容中的分隔符
 
 ### Output Plugin System
 
