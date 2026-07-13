@@ -195,12 +195,12 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, value string, index int
 		protoType = fieldType
 	}
 
+	// 第一个名字和类型为准。仅覆盖 Name/side/ProtoType,
+	// 保留 parser 已写入的 FieldType、ProtoDesc 等其它字段
 	if len(this.Index) == 1 {
 		side, trimmed := cosxls.TrimProtoName(name)
-		idx, dummy := this.Index, this.Dummy
-		this.Field = *cosxls.NewField(trimmed, side)
-		this.Index = idx
-		this.Dummy = dummy
+		this.Name = trimmed
+		this.SetSide(side)
 		this.ProtoType = protoType
 	}
 	if !IsMultipleType(this.ProtoType) {

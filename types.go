@@ -69,7 +69,7 @@ func ProtoBuffTypeFormat(t string) ProtoBuffType {
 	case "str", "string", "text", "lang", "language":
 		return "string"
 	}
-	for _, k := range Config.Language {
+	for _, k := range Config.LanguageTypes {
 		if k == t {
 			return "string"
 		}

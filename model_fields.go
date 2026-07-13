@@ -32,6 +32,10 @@ func (this *Field) Side() string {
 	return this.side
 }
 
+func (this *Field) SetSide(side string) {
+	this.side = side
+}
+
 func (this *Field) Type() string {
 	if len(this.Dummy) > 0 {
 		return this.Dummy[0].Name

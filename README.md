@@ -196,8 +196,9 @@ xlsx.Config.SetEnum("ItemType", "Item", [4]int{0, 1, 2, 3})
 - `Config.Parser func(*Sheet) Parser`:**必填**,Sheet 解析器工厂
 - `Config.Empty func(string) bool`:自定义空值判定(默认空字符串)
 - `Config.Message func() string`:向 proto 注入额外全局对象
-- `Config.Language []string`:被视为多语言文本的 `FieldType`(默认 `text`/`lang`/`language`)
+- `Config.LanguageTypes []string`:被视为多语言文本的 `FieldType`(默认 `text`/`lang`/`language`)
 - `Config.LanguageNewSheetName`:多语言增量页签名(默认 `多语言文本`)
+- `Config.LanguageHeader []string`:多语言文件表头(第一行),默认 `["Key", "文本"]`。读取已有数据时固定跳过第一行、写回时原样保留、新建文件时写入;置空 `[]` 则不启用表头(整表按数据处理)
 - `Config.EnableGlobalDummyName bool`:是否允许未显式命名的子对象按签名自动生成名称;为 `false` 时所有子对象必须通过 `.Name{}`/`<Name>` 显式命名
 - `Config.NamedDummyInHeader bool`:显式命名的子对象假定已在 `ProtoHeader` 中声明,不注册到全局对象也不生成 `message`(避免与头文件重复)
 

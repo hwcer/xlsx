@@ -36,12 +36,13 @@ type config struct {
 	Parser                func(*Sheet) Parser  //解析器
 	Summary               string               //总表名,留空不生成总表
 	Message               func() string        //可以加人proto全局对象
-	Language              []string             //多语言文本包含的类型
+	LanguageTypes         []string             //多语言文本包含的字段类型。用 LanguageTypes 而非 Language,避免与 --language 文件路径标记同名被 cosgo.Config.Unmarshal 覆盖
 	Outputs               []Output             //附加输出插件
 	ProtoHeader           string               //可选,指向一个现有proto文件,其内容将替代TemplateTitle作为文件头部
 	JsonNameFilter        func(*Sheet) string  //JSON文件名字
 	ProtoNameFilter       func(*Sheet) string  //过滤器
 	LanguageNewSheetName  string               //多语言增量页签名
+	LanguageHeader        []string             //多语言文件表头(第一行),读取时固定跳过、写回时保留,新建文件时写入;置空则不启用表头
 	EnableGlobalDummyName bool                 //允许未显式命名的子对象按签名自动生成名称,为false时必须通过.Name{}/<Name>显式命名
 	NamedDummyInHeader    bool                 //显式命名的子对象假定已在ProtoHeader中声明,不注册到全局对象也不生成message定义
 	JsonCompact           bool                 //JSON紧凑模式,为true时生成紧凑JSON,为false时生成格式化JSON
@@ -54,8 +55,9 @@ var Config = &config{
 	Types:                 map[string]SheetType{},
 	Proto:                 "configs.proto",
 	Empty:                 func(s string) bool { return s == "" },
-	Language:              []string{"text", "lang", "language"},
+	LanguageTypes:         []string{"text", "lang", "language"},
 	LanguageNewSheetName:  "多语言文本",
+	LanguageHeader:        []string{"Key", "文本"},
 	EnableGlobalDummyName: true,
 	JsonCompact:           false,
 	ArraySplitString:      []string{",", "-", "_", "|", ";", ":"},

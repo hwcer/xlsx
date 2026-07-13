@@ -44,7 +44,7 @@ LoadExcel(dir)
   → writeProtoMessage() → .proto file
   → writeValueJson() → JSON data files
   → ProtoGo() → shells out to `protoc` for Go code
-  → writeLanguage() → multi-language Excel (if configured)
+  → writeLanguage() → multi-language file (.xlsx/.csv by extension; auto-created if missing)
   → Config.Outputs[].Writer() → custom plugins
 ```
 
@@ -78,6 +78,7 @@ Fields and table names support `S:`/`C:` prefixes for server/client tagging, fil
 
 - **`Extensions`**: 有效输入文件扩展名，默认 `[".xlsx", ".csv"]`，`Ignore()` 过滤时使用
 - **`ArraySplitString`**: 单元格切割数组（`[]int` 等）的分隔符优先级列表，默认 `[",", "-", "_", "|", ";", ":"]`，匹配第一个出现在单元格内容中的分隔符
+- **`LanguageHeader`**: 多语言文件表头（第一行），默认 `["Key", "文本"]`。`writeLanguage`（`language.go`）读取已有数据时固定跳过第一行、写回时原样保留、新建文件时写入表头，保证增量与幂等；置空 `[]` 则不启用表头。语言文件格式由 `--language` 扩展名（`.xlsx`/`.xls`/`.csv`）决定，文件不存在时自动创建
 
 ### Output Plugin System
 

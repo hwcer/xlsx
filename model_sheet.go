@@ -305,7 +305,7 @@ func (this *Sheet) Language(r map[string]string, types map[string]bool) {
 		if !utils.Empty(id) {
 			for _, f := range fields {
 				if f.Index[0] < len(row) {
-					k := fmt.Sprintf("%v_%v_%v", this.ProtoName, f.Name, id)
+					k := fmt.Sprintf("%v_%v_%v", this.ProtoName, id, f.Name)
 					r[k] = row[f.Index[0]]
 				}
 			}

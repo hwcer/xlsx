@@ -201,12 +201,13 @@ func preparePath() {
 		if !filepath.IsAbs(languagePath) {
 			languagePath = filepath.Join(root, languagePath)
 		}
-		if excelStat, err := os.Stat(languagePath); err != nil {
-			logger.Fatal("语言文件错误: %v ", err)
-		} else if excelStat.IsDir() {
+		ext := strings.ToLower(filepath.Ext(languagePath))
+		if ext != ".xlsx" && ext != ".xls" && ext != ".csv" {
+			logger.Fatal("语言文件必须是Excel(xlsx,xls)或CSV(csv) ")
+		}
+		// 文件可以不存在,writeLanguage 会根据扩展名自动生成
+		if stat, err := os.Stat(languagePath); err == nil && stat.IsDir() {
 			logger.Fatal("语言文件不能是一个目录: %v ", languagePath)
-		} else if ext := filepath.Ext(languagePath); ext != ".xlsx" && ext != ".xls" {
-			logger.Fatal("语言文件必须是Excel(xlsx,xls) ")
 		}
 		cosgo.Config.Set(FlagsNameLanguage, languagePath)
 	} else {
