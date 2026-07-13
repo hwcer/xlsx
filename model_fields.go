@@ -28,12 +28,11 @@ func NewField(name, side string) *Field {
 	return &Field{Name: name, side: side}
 }
 
-func (this *Field) Side() string {
+func (this *Field) Side(side ...string) string {
+	if len(side) > 0 {
+		this.side = side[0]
+	}
 	return this.side
-}
-
-func (this *Field) SetSide(side string) {
-	this.side = side
 }
 
 func (this *Field) Type() string {

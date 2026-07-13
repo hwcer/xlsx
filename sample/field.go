@@ -200,7 +200,7 @@ func (this *Field) parse(fieldType cosxls.ProtoBuffType, value string, index int
 	if len(this.Index) == 1 {
 		side, trimmed := cosxls.TrimProtoName(name)
 		this.Name = trimmed
-		this.SetSide(side)
+		this.Side(side)
 		this.ProtoType = protoType
 	}
 	if !IsMultipleType(this.ProtoType) {
