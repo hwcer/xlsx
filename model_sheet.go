@@ -66,6 +66,7 @@ func (this *Sheet) GetRows() [][]string {
 			logger.Trace("获取行数据失败:%v,err:%v", this.SheetName, err)
 			return nil
 		}
+		this.calcFormula() //补算缺少缓存值的公式单元格,见 formula.go
 	}
 	return this.rows
 }
