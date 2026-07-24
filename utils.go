@@ -137,14 +137,18 @@ func preparePath() {
 		if excelStat, err := os.Stat(out); err != nil || !excelStat.IsDir() {
 			logger.Fatal("静态数据目录错误: %v ", out)
 		}
-		files, _ := os.ReadDir(out)
-		logger.Trace("删除输出路径中的文件")
-		for _, filename := range files {
-			if strings.HasSuffix(filename.Name(), ".proto") ||
-				strings.HasSuffix(filename.Name(), ".txt") {
-				err = os.Remove(filepath.Join(out, filename.Name()))
-				if err != nil {
-					logger.Fatal(err)
+		// proto 置空表示本次不生成 proto(只导 JSON),此时不清理 out 里已有的
+		// .proto/.txt,避免把版本库里的 configs.proto 删掉。
+		if Config.Proto != "" {
+			files, _ := os.ReadDir(out)
+			logger.Trace("删除输出路径中的文件")
+			for _, filename := range files {
+				if strings.HasSuffix(filename.Name(), ".proto") ||
+					strings.HasSuffix(filename.Name(), ".txt") {
+					err = os.Remove(filepath.Join(out, filename.Name()))
+					if err != nil {
+						logger.Fatal(err)
+					}
 				}
 			}
 		}

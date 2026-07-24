@@ -65,7 +65,7 @@ func LoadExcel(dir string) {
 		_ = wb.Close()
 	}
 
-	if cosgo.Config.GetString(FlagsNameOut) != "" {
+	if Config.Proto != "" && cosgo.Config.GetString(FlagsNameOut) != "" {
 		writeProtoMessage(sheets)
 	}
 	if cosgo.Config.GetString(FlagsNameJson) != "" {
