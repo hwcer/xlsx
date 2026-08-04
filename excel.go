@@ -11,7 +11,9 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func LoadExcel(dir string) {
+// LoadExcel 解析目录下所有表格并产出各类文件；返回值表示是否全部成功。
+func LoadExcel(dir string) (ok bool) {
+	ok = true
 	logger.Trace("====================开始解析静态数据====================")
 	var sheets []*Sheet
 	filter := map[string]*Sheet{}
@@ -69,7 +71,7 @@ func LoadExcel(dir string) {
 		writeProtoMessage(sheets)
 	}
 	if cosgo.Config.GetString(FlagsNameJson) != "" {
-		writeValueJson(sheets)
+		ok = writeValueJson(sheets)
 	}
 	if cosgo.Config.GetString(FlagsNameGo) != "" {
 		ProtoGo()
@@ -81,6 +83,7 @@ func LoadExcel(dir string) {
 		out.Writer(sheets)
 	}
 	globalObjects = map[string]*Dummy{}
+	return
 }
 
 func parseSheet(wb *excelize.File, fileName string, sheetName string) (sheets map[string]*Sheet) {

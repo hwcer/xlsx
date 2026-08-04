@@ -1,6 +1,8 @@
 package xlsx
 
 import (
+	"os"
+
 	"github.com/hwcer/cosgo"
 	"github.com/hwcer/logger"
 )
@@ -76,7 +78,15 @@ func (this *Module) Start() error {
 	}
 
 	preparePath()
-	LoadExcel(cosgo.Config.GetString(FlagsNameIn))
+	ok := LoadExcel(cosgo.Config.GetString(FlagsNameIn))
+	if !ok {
+		//导表失败必须以非零码退出：cosgo.Start 对 Module.Start 返回的 error 只记日志、
+		//不影响退出码，光返回 error 的话 export.bat 的 `|| exit /b` 和 CI 仍会一路绿灯，
+		//缺表的 JSON 就这么进了版本库（见 ProjectElf r3805：Skill 表整表丢失四天无人察觉）。
+		logger.Alert("\n========================导表失败,产物不完整========================\n")
+		logger.Console.Disable = true
+		os.Exit(1)
+	}
 	logger.Trace("\n========================恭喜大表哥导表成功========================\n")
 	logger.Console.Disable = true
 	return nil

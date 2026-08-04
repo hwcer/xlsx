@@ -76,7 +76,8 @@ func (this *Field) Value(shell *Sheet, row []string) (ret any, err error) {
 		err = fmt.Errorf("无法识别的类型(%v)", this.Name)
 	}
 	if err != nil {
-		err = fmt.Errorf("字段名:%v,错误信息:%v", this.Name, err)
+		//必须用 %w:Sheet 层要靠 errors.As 从这里取回 CellError 的列坐标
+		err = fmt.Errorf("字段名:%v,错误信息:%w", this.Name, err)
 	}
 	return
 }
@@ -88,19 +89,24 @@ func (this *Field) getProtoValue(shell *Sheet, row []string, handle ProtoBuffPar
 		return nil, fmt.Errorf("字段名:%v,错误信息:%v", this.Name, "缺少有效的数据列")
 	}
 	var vs []string
+	var cols []int //vs 各值来自哪一列,报错时用来定位
 	for _, i := range index {
 		if i < len(row) && !Config.Empty(row[i]) {
 			vs = append(vs, row[i])
+			cols = append(cols, i)
 		} else {
 			this.hasEmptyValue(shell, row)
 		}
 	}
 	if len(vs) > 0 {
-		return handle.Value(vs...)
+		//多列合并成一个值(数组类字段)时只能指到首列,已足够定位到出错的字段块
+		v, err := handle.Value(vs...)
+		return v, NewCellError(cols[0], err)
 	} else if handle.Repeated() {
 		return []any{}, nil //空数组
 	} else {
-		return handle.Value("") //填充零值
+		v, err := handle.Value("") //填充零值
+		return v, NewCellError(index[0], err)
 	}
 }
 

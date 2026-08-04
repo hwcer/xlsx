@@ -1,6 +1,7 @@
 package xlsx
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hwcer/cosgo/utils"
@@ -203,6 +204,19 @@ func (this *Sheet) Values() (any, []error) {
 	}
 }
 
+// rowError 拼装带 Excel 坐标的行解析错误。
+//
+// rowIndex 是 0 base 的行索引，+1 后即 Excel 里看到的行号；列坐标由底层的 CellError
+// 一路带上来（见 types.go），两者凑齐才能报成「第6行第AA列」这种可直接跳转的位置。
+func (this *Sheet) rowError(rowIndex int, err error) error {
+	pos := fmt.Sprintf("第%v行", rowIndex+1)
+	var ce *CellError
+	if errors.As(err, &ce) {
+		pos += fmt.Sprintf("第%v列", ColumnName(ce.Column))
+	}
+	return fmt.Errorf("解析错误:%v%v,%v", this.ProtoName, pos, err)
+}
+
 // kv 模式
 func (this *Sheet) kv() (any, []error) {
 	r := map[string]any{}
@@ -223,7 +237,7 @@ func (this *Sheet) kv() (any, []error) {
 			if data, err = field.Value(this, row); err == nil {
 				r[field.Name] = data
 			} else {
-				errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, i+1, err))
+				errs = append(errs, this.rowError(i, err))
 			}
 		}
 	}
@@ -255,7 +269,7 @@ func (this *Sheet) hash() (any, []error) {
 		}
 		val, err := this.Value(row)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("解析错误:%v第%v行,%v", this.ProtoName, i+1, err))
+			errs = append(errs, this.rowError(i, err))
 			continue
 		}
 		r[id] = val

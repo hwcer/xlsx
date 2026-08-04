@@ -74,7 +74,7 @@ func (this *Dummy) Value(row []string) (map[string]any, error) {
 			cellValue := row[field.SheetIndex]
 			if cellValue != "" {
 				if v, err := handle.Value(cellValue); err != nil {
-					return nil, err
+					return nil, NewCellError(field.SheetIndex, err)
 				} else if v != nil {
 					r[field.Name] = v
 				}
