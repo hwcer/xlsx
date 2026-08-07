@@ -48,6 +48,8 @@ type config struct {
 	JsonCompact           bool                 //JSON紧凑模式,为true时生成紧凑JSON,为false时生成格式化JSON
 	ArraySplitString      []string             //数组类型值分割字符串
 	Extensions            []string             //有效的Excel文件扩展名
+	RowSuffix             string               //map表(normal)生成的message名后缀,默认空
+	TableSuffix           string               //kv表(struct)生成的message名后缀,默认空
 }
 
 var Config = &config{
@@ -75,7 +77,15 @@ func ProtoNameFilterDefault(s *Sheet) string {
 	if Config.ProtoNameFilter != nil {
 		return Config.ProtoNameFilter(s)
 	}
-	return s.ProtoName
+	return s.ProtoName + Config.ProtoNameSuffix(s.SheetType)
+}
+
+// ProtoNameSuffix 按表类型返回message名后缀,未配置时返回空
+func (this *config) ProtoNameSuffix(t SheetType) string {
+	if t == SheetTypeEnum {
+		return this.TableSuffix
+	}
+	return this.RowSuffix
 }
 
 func (this *config) SetType(t SheetType, names ...string) {

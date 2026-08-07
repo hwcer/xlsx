@@ -1,7 +1,6 @@
 package sample
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/hwcer/cosgo"
@@ -14,7 +13,6 @@ func init() {
 	i := &infoOutput{}
 	xlsx.Config.SetOutput(i)
 	xlsx.Config.SetJsonNameFilter(i.JsonNameFilter)
-	xlsx.Config.SetProtoNameFilter(i.ProtoNameFilter)
 	cosgo.Config.Flags(FlagsNameInfo, "", "", "生成索引文件路径")
 }
 
@@ -27,10 +25,6 @@ func (i infoOutput) JsonNameFilter(sheet *xlsx.Sheet) string {
 		return sheet.ProtoName
 	}
 	return sheet.SheetName
-}
-
-func (i infoOutput) ProtoNameFilter(sheet *xlsx.Sheet) string {
-	return sheet.ProtoName
 }
 
 func (i infoOutput) Writer(sheets []*xlsx.Sheet) {
@@ -47,7 +41,7 @@ func (i infoOutput) Writer(sheets []*xlsx.Sheet) {
 		}
 		if sheet.SheetType == xlsx.SheetTypeHash {
 			v.Type = "normal"
-			v.RowClass = fmt.Sprintf("%sRow", sheet.ProtoName)
+			v.RowClass = xlsx.ProtoNameFilterDefault(sheet)
 			primary := sheet.Fields[0]
 			if primary.ProtoType.IsNumber() {
 				v.KeyType = "int"
@@ -57,7 +51,7 @@ func (i infoOutput) Writer(sheets []*xlsx.Sheet) {
 		} else {
 			v.Type = "kv"
 			v.KeyType = "string"
-			v.TableClass = fmt.Sprintf("%sTable", sheet.ProtoName)
+			v.TableClass = xlsx.ProtoNameFilterDefault(sheet)
 		}
 
 		s[sheet.SheetName] = v

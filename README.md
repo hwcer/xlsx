@@ -88,6 +88,8 @@ GOPackage   = "configs"
 CSPackage   = "Cosnet.configs"
 Proto       = "configs.proto"   # 输出 proto 文件名
 Summary     = ""                # 总表名,留空不生成
+RowSuffix   = ""                # map表(normal)生成的message名后缀,留空不加
+TableSuffix = ""                # kv表(struct)生成的message名后缀,留空不加
 ProtoHeader = ""                # 可选,指向现有 proto 文件,用其内容替代内置文件头部模板 (设置后 Package/GOPackage/CSPackage 失效)
 Extensions  = [".xlsx", ".csv"] # 有效的输入文件扩展名
 ArraySplitString = [",", "-", "_", "|", ";", ":"] # 数组分隔符优先级
@@ -124,6 +126,28 @@ NamedDummyInHeader    = true        # 命名子对象假定已在 base.proto 中
 
 - 显式命名的子对象(通过 `<>` 或 `.Name` 指定)不会注册到全局对象,视为已在 `ProtoHeader` 中定义
 - 匿名子对象(未指定名字的嵌套对象)仍会按签名自动命名并写入输出 proto(`EnableGlobalDummyName` 须为 `true`)
+
+### message 名后缀 `RowSuffix` / `TableSuffix`
+
+默认情况下 message 名就是表名经 `TrimProtoName` 规范化后的结果(`UnitSkin`、`BaseN`)。
+若下游项目(如 Unity 客户端)需要按表类型区分类名,可配置后缀:
+
+```toml
+RowSuffix   = "Row"     # map表(normal),即 SheetTypeHash
+TableSuffix = "Table"   # kv表(struct),即 SheetTypeEnum
+```
+
+生成结果:
+
+```proto
+message UnitSkinRow{ ... }      // map 表
+message BaseNTable{ ... }       // kv 表
+```
+
+- 后缀只作用于 **message 名**;总表字段名、JSON 文件名、JSON 内的表名 key 均不受影响
+  (总表仍是 `map<int32,UnitSkinRow> UnitSkin=1;`)
+- `info.json` 的 `rowClass` / `tableClass` 与 message 名同源,自动跟随后缀
+- 两端可以配不同值:服务端留空保持 Go 结构体名简洁,客户端配 `Row`/`Table`
 
 ### CSV 支持
 
