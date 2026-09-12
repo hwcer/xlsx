@@ -1,10 +1,10 @@
 module github.com/hwcer/xlsx
 
-go 1.25.0
+go 1.26.0
 
 require (
-	github.com/hwcer/cosgo v1.8.4-0.20260904100637-05162b06213a
-	github.com/hwcer/logger v0.2.9-0.20260626033726-42e0a5927245
+	github.com/hwcer/cosgo v1.8.4-0.20260912010310-8e8fd00d86e3
+	github.com/hwcer/logger v0.2.9-0.20260910161556-c8faab738be9
 	github.com/xuri/excelize/v2 v2.10.1
 )
 
@@ -13,7 +13,7 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/pelletier/go-toml/v2 v2.3.1 // indirect
+	github.com/pelletier/go-toml/v2 v2.4.2 // indirect
 	github.com/richardlehane/mscfb v1.0.6 // indirect
 	github.com/richardlehane/msoleps v1.0.6 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
@@ -31,9 +31,8 @@ require (
 	github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.52.0 // indirect
-	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
-	golang.org/x/net v0.54.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
-	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/crypto v0.53.0 // indirect
+	golang.org/x/net v0.56.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
+	golang.org/x/text v0.38.0 // indirect
 )
