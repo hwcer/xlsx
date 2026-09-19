@@ -272,6 +272,12 @@ func (this *Sheet) hash() (any, []error) {
 			errs = append(errs, this.rowError(i, err))
 			continue
 		}
+		//🔴 重复 ID 必须报错:hash 表旧实现 r[id]=val 静默覆盖,策划表两行同 ID
+		//时导出 JSON 少一条且无任何告警——数据静默丢失
+		if _, dup := r[id]; dup {
+			errs = append(errs, fmt.Errorf("第%d行ID重复:%s", i+1, id))
+			continue
+		}
 		r[id] = val
 	}
 
@@ -352,4 +358,3 @@ func (this *Sheet) GlobalObjectsProtoName() {
 		globalObjects.Insert(this, field.Dummy[0])
 	}
 }
-
