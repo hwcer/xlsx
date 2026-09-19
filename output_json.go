@@ -34,12 +34,17 @@ func writeValueJson(sheets []*Sheet) (ok bool) {
 		}
 	}
 	path := cosgo.Config.GetString(FlagsNameJson)
+	//写盘失败必须计入 ok:磁盘满/目标只读时不能让 CI 拿旧产物绿灯通过
 	if filepath.Ext(path) == ".json" {
-		WriteFile(path, data)
+		if err := WriteFile(path, data); err != nil {
+			errs = append(errs, err)
+		}
 	} else {
 		for k, v := range data {
 			file := filepath.Join(path, k+".json")
-			WriteFile(file, v)
+			if err := WriteFile(file, v); err != nil {
+				errs = append(errs, err)
+			}
 		}
 	}
 	return len(errs) == 0

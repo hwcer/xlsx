@@ -259,9 +259,11 @@ func CheckFileAndRemove(path string) error {
 	return os.Remove(path)
 }
 
-func WriteFile(file string, data any) {
+// WriteFile 序列化并写出 JSON 文件。
+// 返回 error 并由调用方计入失败集合:磁盘满/目标只读时若只记日志,
+// CI 会拿着缺失或陈旧的产物绿灯通过(与"缺表非零退出"防线同级的事故)
+func WriteFile(file string, data any) (err error) {
 	var b []byte
-	var err error
 	if Config.JsonCompact {
 		b, err = json.Marshal(data)
 	} else {
@@ -269,10 +271,11 @@ func WriteFile(file string, data any) {
 	}
 	if err != nil {
 		logger.Error("WriteFile:%v", err)
-		return
+		return err
 	}
 
 	if err = os.WriteFile(file, b, os.ModePerm); err != nil {
 		logger.Error("WriteFile:%v", err)
 	}
+	return err
 }
