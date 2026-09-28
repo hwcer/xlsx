@@ -27,7 +27,7 @@ var mod *Module
 
 func init() {
 	logger.SetCallDepth(0)
-	logger.Console.Disable = true
+	logger.Console.Disable.Store(true)
 	cosgo.Config.Flags(FlagsNameIn, "", "", "需要解析的excel目录")
 	cosgo.Config.Flags(FlagsNameOut, "", "", "输出文件目录")
 	cosgo.Config.Flags(FlagsNameTag, "", "S", "字段标记，一般用来区分前后端字段,格式 客户端:C,服务器:S")
@@ -63,7 +63,7 @@ func (this *Module) Close() error {
 	return nil
 }
 func (this *Module) Start() error {
-	logger.Console.Disable = false
+	logger.Console.Disable.Store(false)
 	if err := cosgo.Config.Unmarshal(Config); err != nil {
 		return err
 	}
@@ -84,10 +84,10 @@ func (this *Module) Start() error {
 		//不影响退出码，光返回 error 的话 export.bat 的 `|| exit /b` 和 CI 仍会一路绿灯，
 		//缺表的 JSON 就这么进了版本库（见 ProjectElf r3805：Skill 表整表丢失四天无人察觉）。
 		logger.Alert("\n========================导表失败,产物不完整========================\n")
-		logger.Console.Disable = true
+		logger.Console.Disable.Store(true)
 		os.Exit(1)
 	}
 	logger.Trace("\n========================恭喜大表哥导表成功========================\n")
-	logger.Console.Disable = true
+	logger.Console.Disable.Store(true)
 	return nil
 }
