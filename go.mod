@@ -3,7 +3,7 @@ module github.com/hwcer/xlsx
 go 1.26.0
 
 require (
-	github.com/hwcer/cosgo v1.8.4-0.20260928102218-22f89e4dbb23
+	github.com/hwcer/cosgo v1.8.4-0.20260929074315-7f81d5a19ba8
 	github.com/hwcer/logger v0.2.9-0.20260920081328-3986f6f383d3
 	github.com/xuri/excelize/v2 v2.10.1
 )
