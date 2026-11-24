@@ -3,6 +3,7 @@ package xlsx
 import (
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/hwcer/cosgo"
@@ -31,7 +32,6 @@ func LoadExcel(dir string) (ok bool) {
 		dir = filepath.Dir(dir)
 	}
 
-	var protoIndex int
 	var wb *excelize.File
 	for _, file := range files {
 		if strings.HasPrefix(filepath.Base(file), "~") {
@@ -57,8 +57,6 @@ func LoadExcel(dir string) (ok bool) {
 					logger.Alert("----sheet:%v,file:%v", v.Name, v.FileName)
 					logger.Alert("----sheet:%v,file:%v", i.Name, i.FileName)
 				} else {
-					protoIndex += 1
-					v.ProtoIndex = protoIndex
 					filter[k] = v
 					sheets = append(sheets, v)
 				}
@@ -66,6 +64,7 @@ func LoadExcel(dir string) (ok bool) {
 		}
 		_ = wb.Close()
 	}
+	sortSheets(sheets)
 
 	if Config.Proto != "" && cosgo.Config.GetString(FlagsNameOut) != "" {
 		writeProtoMessage(sheets)
@@ -84,6 +83,20 @@ func LoadExcel(dir string) (ok bool) {
 	}
 	globalObjects = map[string]*Dummy{}
 	return
+}
+
+// sortSheets 按表名排序并分配总表编号(ProtoIndex)。
+//
+// parseSheet 返回 map,收集顺序随机;不排序的话同一份 Excel 每次导出的
+// message 顺序、总表字段编号都不同,下游 protoc 生成的 .pb.go 和编出的
+// 二进制哈希也就每次都变。
+func sortSheets(sheets []*Sheet) {
+	sort.Slice(sheets, func(i, j int) bool {
+		return strings.ToUpper(sheets[i].ProtoName) < strings.ToUpper(sheets[j].ProtoName)
+	})
+	for i := range sheets {
+		sheets[i].ProtoIndex = i + 1
+	}
 }
 
 func parseSheet(wb *excelize.File, fileName string, sheetName string) (sheets map[string]*Sheet) {

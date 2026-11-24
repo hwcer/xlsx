@@ -2,6 +2,7 @@ package xlsx
 
 import (
 	"os"
+	"sort"
 
 	"github.com/hwcer/cosgo"
 	"github.com/hwcer/logger"
@@ -71,7 +72,14 @@ func (this *Module) Start() error {
 	if err := cosgo.Config.UnmarshalKey("enum", &enums); err != nil {
 		return err
 	}
-	for k, v := range enums {
+	//排序后再归并:不同 key 去掉 S:/C: 前缀后可能同名,固定顺序覆盖才能保证导出结果确定
+	keys := make([]string, 0, len(enums))
+	for k := range enums {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		v := enums[k]
 		_, pk := TrimProtoName(k)
 		_, v.Src = TrimProtoName(v.Src)
 		Config.enums[pk] = v

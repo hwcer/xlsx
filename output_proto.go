@@ -6,6 +6,7 @@ import (
 	"github.com/hwcer/logger"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -72,7 +73,14 @@ func buildGlobalObjects(b *strings.Builder, sheets []*Sheet) {
 	for _, s := range sheets {
 		s.GlobalObjectsProtoName()
 	}
-	for _, dummy := range globalObjects {
+	//globalObjects 是 map,直接 range 子对象 message 的输出顺序随机,按名字排序保证导出确定
+	names := make([]string, 0, len(globalObjects))
+	for k := range globalObjects {
+		names = append(names, k)
+	}
+	sort.Strings(names)
+	for _, k := range names {
+		dummy := globalObjects[k]
 		if Config.NamedDummyInHeader && dummy.Name != dummy.Label {
 			continue
 		}
