@@ -38,10 +38,10 @@ func s2a(s string) [4]int {
 func (this *Parser) Verify() (skip int, name string, ok bool) {
 	skip = 4 // 默认跳过4行
 
-	// 获取第一行数据
+	// 获取第一行数据；无行 / 空行都按无表名处理（ok=false 静默跳过）——
+	// 说明、对照类备注 sheet 没有表名行，属正常情况，不打错误
 	row := this.sheet.GetRow(0)
 	if row == nil {
-		fmt.Printf("获取sheet行错误 name:%v", this.sheet.Name)
 		return
 	}
 	if len(row) == 0 {
